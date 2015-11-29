@@ -1,0 +1,26 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/share_facebook"
+        android:title="Facebook"
+        android:icon="@drawable/ic_facebook_512x512" />
+    <item
+        android:id="@+id/share_google_plus"
+        android:title="Google+"
+        android:icon="@drawable/ic_google_plus_512x512"/>
+    <item
+        android:id="@+id/share_twitter"
+        android:title="Twitter"
+        android:icon="@drawable/ic_twitter_512x512" />
+    <item
+        android:id="@+id/share_instagram"
+        android:title="Instagram"
+        android:icon="@drawable/ic_instagram_512x512" />
+    <item
+        android:id="@+id/share_whatsapp"
+        android:title="WhatsApp"
+        android:icon="@drawable/ic_whatsapp_512x512" />
+    <item
+        android:id="@+id/share_message"
+        android:title="Message"
+        android:icon="@drawable/ic_message_512x512" />
+</menu>
