@@ -1,5 +1,7 @@
 package com.achillesrasquinha.biblegenerator;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -29,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton mFAB;
     private Button               mButton1;
     private Button               mButton2;
+    private Button               mButton3;
     private BottomSheet.Builder  mBottomSheet;
 
     private DatabaseOpenHelper   mDatabaseOpenHelper;
@@ -46,11 +49,13 @@ public class MainActivity extends AppCompatActivity {
 
     private AdView               mAdView;
 
+    private String               mAppName;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final String APP_NAME = getApplicationContext().getString(R.string.app_name);
+        mAppName = getResources().getString(R.string.app_name);
 
         mDatabaseOpenHelper = new DatabaseOpenHelper(this, "bible");
 
@@ -61,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         mFAB                = (FloatingActionButton) findViewById(R.id.fab_random_generator);
         mButton1            = (Button)               findViewById(R.id.btn_like);
         mButton2            = (Button)               findViewById(R.id.btn_share);
+        mButton3            = (Button)               findViewById(R.id.btn_content_copy);
         mAdView             = (AdView)               findViewById(R.id.ad_view);
 
         setSupportActionBar(mToolbar);
@@ -109,11 +115,6 @@ public class MainActivity extends AppCompatActivity {
                 .listener(new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int resource) {
-                        mIntentString =
-                                "\"" + mText + "\"" + "\n" +
-                                "- " + mBookName + " " + mChapter + ":" + mVerse + "\n" +
-                                "\n" +
-                                "via " + APP_NAME;
                         switch(resource) {
                             case R.id.share_whatsapp:
                                 if(ThirdPartyApplication.isInstalled(getApplicationContext(), "com.whatsapp")) {
@@ -150,10 +151,14 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
 
+                            break;
+
                             case R.id.share_twitter:
                                 if(ThirdPartyApplication.isInstalled(getApplicationContext(), "com.twitter.android")) {
 
                                 }
+
+                            break;
 
                             case R.id.share_message:
                                 Intent intent = new Intent();
@@ -171,6 +176,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mBottomSheet.show();
+            }
+        });
+
+        mButton3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ClipboardManager cm = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                ClipData         cd = ClipData.newPlainText(mAppName, mIntentString);
+                cm.setPrimaryClip(cd);
             }
         });
 
@@ -203,6 +217,12 @@ public class MainActivity extends AppCompatActivity {
         mTextViewTitle   .setText(mTitle);
         mTextViewSubtitle.setText(mSubtitle);
         mTextViewText    .setText(mText);
+
+        mIntentString =
+                "\"" + mText + "\"" + "\n" +
+                        "- " + mBookName + " " + mChapter + ":" + mVerse + "\n" +
+                        "\n" +
+                        "via " + mAppName;
 
         updateLikeButton();
     }
