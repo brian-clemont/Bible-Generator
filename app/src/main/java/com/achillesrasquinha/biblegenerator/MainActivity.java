@@ -19,7 +19,6 @@ import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -104,8 +103,6 @@ public class MainActivity extends AppCompatActivity {
 
     mHashMap = new HashMap<String, String>();
 
-    final Resources resources = getResources();
-
     Toolbar toolbar = (Toolbar) findViewById(R.id.card_view_toolbar);
     if (toolbar != null) {
       toolbar.inflateMenu(R.menu.menu_card_view_toolbar);
@@ -117,11 +114,11 @@ public class MainActivity extends AppCompatActivity {
               ClipboardManager clipboardManager = (ClipboardManager)
                   getSystemService(CLIPBOARD_SERVICE);
               clipboardManager.setPrimaryClip(ClipData.newPlainText(
-                  resources.getString(R.string.app_name), getText()));
+                  getResources().getString(R.string.app_name), getText()));
 
               //issues with coordinator_layout(snackbar + fab), using a toast instead.
-              Toast.makeText(getApplicationContext(),
-                  resources.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show();
+              Toast.makeText(getApplicationContext(), R.string.copied_to_clipboard,
+                  Toast.LENGTH_SHORT).show();
               return true;
 
             case R.id.action_save:
@@ -153,9 +150,8 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(MaterialDialog materialDialog,
                                         DialogAction dialogAction) {
                       //TO DO: create and save bitmap
-                      Toast.makeText(getApplicationContext(),
-                          resources.getString(R.string.saved_to_gallery), Toast.LENGTH_SHORT)
-                          .show();
+                      Toast.makeText(getApplicationContext(), R.string.saved_to_gallery,
+                          Toast.LENGTH_SHORT).show();
                     }
                   })
                   .show();
@@ -198,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
       @Override
       public void onClick(View v) {
         new BottomSheet.Builder(MainActivity.this)
-            .title(resources.getString(R.string.share_via))
+            .title(R.string.share_via)
             .grid()
             .sheet(R.menu.menu_bottom_sheet_share)
             .listener(new DialogInterface.OnClickListener() {
@@ -227,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
                   case R.id.share_whatsapp:
                     if (ThirdPartyApplication.isInstalled(MainActivity.this, "com.whatsapp")) {
                       new BottomSheet.Builder(MainActivity.this)
-                          .title(resources.getString(R.string.share_as))
+                          .title(R.string.share_as)
                           .sheet(R.menu.menu_bottom_sheet_share_as)
                           .listener(new DialogInterface.OnClickListener() {
                             @Override
@@ -250,7 +246,9 @@ public class MainActivity extends AppCompatActivity {
                           })
                           .show();
                     } else {
-
+                      Toast.makeText(getApplicationContext(),
+                          R.string.you_dont_have_instagram_installed,
+                          Toast.LENGTH_SHORT).show();
                     }
 
                     break;

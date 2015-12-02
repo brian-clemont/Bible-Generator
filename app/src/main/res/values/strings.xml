@@ -15,5 +15,7 @@
         <item android:id="@+id/format_jpg">JPG</item>
         <item android:id="@+id/format_png">PNG</item>
     </string-array>
+    <string name="you_dont_have_instagram_installed">You don\'t have Instagram installed.</string>
+    <string name="you_dont_have_whatsapp_installed">You don\'t have WhatsApp installed.</string>
     <string name="saved_to_gallery">Saved to gallery.</string>
 </resources>
