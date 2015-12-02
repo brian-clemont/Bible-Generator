@@ -24,14 +24,16 @@ public class ImageGenerator {
     private static final int PIXEL_IMAGE_WIDTH  = 512;
     private static final int PIXEL_IMAGE_HEIGHT = PIXEL_IMAGE_WIDTH;
 
-    private Context mContext;
-    private File    mStorageDirectory;
+    private Context                 mContext;
+    private File                    mStorageDirectory;
+    private Bitmap.CompressFormat   mCompressFormat;
 
     public ImageGenerator(Context context) {
         this.mContext          = context;
         this.mStorageDirectory = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES),
                 mContext.getResources().getString(R.string.app_name));
+        this.mCompressFormat   = Bitmap.CompressFormat.JPEG;
     }
 
     protected Bitmap getBitmap(String title, String subtitle, String text) {
@@ -101,7 +103,7 @@ public class ImageGenerator {
 
         try {
             FileOutputStream out = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            bitmap.compress(mCompressFormat, 100, out);
             out.flush();
             out.close();
         }
@@ -110,5 +112,9 @@ public class ImageGenerator {
         }
 
         return Uri.fromFile(file);
+    }
+
+    public void setCompressFormat(Bitmap.CompressFormat format) {
+        this.mCompressFormat = format;
     }
 }
