@@ -52,10 +52,11 @@ public class ImageGenerator {
     final int            X               = Math.round(TypedValue.applyDimension(
         TypedValue.COMPLEX_UNIT_DIP, 16, DISPLAY_METRICS));
     final float          SIZE_TITLE      = TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_SP, 24, DISPLAY_METRICS);
-    final int            Y_TITLE         = Math.round(SIZE_TITLE * SIZE_TITLE);
+        TypedValue.COMPLEX_UNIT_SP,  24, DISPLAY_METRICS);
+    final int            Y_TITLE         = Math.round(TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP, 24, DISPLAY_METRICS) + SIZE_TITLE);
     final float          SIZE_SUBTITLE   = TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_SP, 14, DISPLAY_METRICS);
+        TypedValue.COMPLEX_UNIT_SP,  14, DISPLAY_METRICS);
     final int            Y_SUBTITLE      = Math.round(TypedValue.applyDimension(
         TypedValue.COMPLEX_UNIT_DIP, 12, DISPLAY_METRICS) + Y_TITLE + SIZE_SUBTITLE);
     final float          LINE_SPACING    = TypedValue.applyDimension(
@@ -80,7 +81,7 @@ public class ImageGenerator {
     //subtitle
     paint.setTextSize(SIZE_SUBTITLE);
     paint.setColor(ContextCompat.getColor(mContext, R.color.primary_text_disabled_material_light));
-    canvas.drawText(title, X, Y_SUBTITLE, paint);
+    canvas.drawText(subtitle, X, Y_SUBTITLE, paint);
 
     //since text needs to be wrapped, using a StaticLayout
     paint.setColor(ContextCompat.getColor(mContext, R.color.secondary_text_default_material_light));
