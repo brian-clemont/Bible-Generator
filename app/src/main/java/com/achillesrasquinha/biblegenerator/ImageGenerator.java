@@ -1,11 +1,23 @@
+// Copyright 2015 Achilles Rasquinha
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package com.achillesrasquinha.biblegenerator;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.net.Uri;
 import android.os.Environment;
 import android.support.v4.content.ContextCompat;
 import android.text.Layout;
@@ -15,104 +27,99 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class ImageGenerator {
+  private static final int IMAGE_WIDTH  = 512;
+  private static final int IMAGE_HEIGHT = IMAGE_WIDTH;
 
-  private static final int PIXEL_IMAGE_WIDTH = 512;
-  private static final int PIXEL_IMAGE_HEIGHT = PIXEL_IMAGE_WIDTH;
-
-  private Context mContext;
-  private File mStorageDirectory;
-  private Bitmap.CompressFormat mCompressFormat;
+  private Context               mContext;
+  private File                  mStorageDirectory;
+  private Bitmap.CompressFormat mFormat;
 
   public ImageGenerator(Context context) {
-    this.mContext = context;
-    this.mStorageDirectory = new File(Environment.getExternalStoragePublicDirectory(
-        Environment.DIRECTORY_PICTURES),
-        context.getResources().getString(R.string.app_name));
-    this.mCompressFormat = Bitmap.CompressFormat.JPEG;
+    mContext          = context;
+    mStorageDirectory = new File(Environment.getExternalStoragePublicDirectory(
+        Environment.DIRECTORY_PICTURES), context.getString(R.string.app_name));
+    mFormat           = Bitmap.CompressFormat.JPEG;
   }
 
-  protected Bitmap getBitmap(String title, String subtitle, String text) {
-    DisplayMetrics dm = mContext.getResources().getDisplayMetrics();
+  public Bitmap getBitmap(String title, String subtitle, String text) {
+    final DisplayMetrics DISPLAY_METRICS = mContext.getResources().getDisplayMetrics();
+    final int            X               = Math.round(TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP, 16, DISPLAY_METRICS));
+    final float          SIZE_TITLE      = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_SP, 24, DISPLAY_METRICS);
+    final int            Y_TITLE         = Math.round(SIZE_TITLE * SIZE_TITLE);
+    final float          SIZE_SUBTITLE   = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_SP, 14, DISPLAY_METRICS);
+    final int            Y_SUBTITLE      = Math.round(TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP, 12, DISPLAY_METRICS) + Y_TITLE + SIZE_SUBTITLE);
+    final float          LINE_SPACING    = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP,  8, DISPLAY_METRICS);
 
-    final float PIXEL_SIZE_TITLE = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24, dm);
-    final float PIXEL_SIZE_SUBTITLE = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14, dm);
-    final float PIXEL_SIZE_TEXT = PIXEL_SIZE_SUBTITLE;
+    Bitmap bitmap = Bitmap.createBitmap(IMAGE_WIDTH, IMAGE_HEIGHT, Bitmap.Config.ARGB_8888);
+    //convert bitmap to card view background color
+    bitmap.eraseColor(ContextCompat.getColor(mContext, R.color.cardview_light_background));
 
-    final int PIXEL_POSITION_X_LEFT = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, dm));
-    final int PIXEL_POSITION_X_RIGHT = PIXEL_IMAGE_WIDTH - PIXEL_POSITION_X_LEFT;
-    final int PIXEL_POSITION_Y_TITLE = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48, dm));
-    final int PIXEL_POSITION_Y_SUBTITLE = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12, dm) + PIXEL_POSITION_Y_TITLE + PIXEL_SIZE_SUBTITLE);
-    final int PIXEL_POSITION_Y_TEXT = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, dm) + PIXEL_POSITION_Y_SUBTITLE + PIXEL_SIZE_TEXT);
+    Canvas    canvas = new Canvas(bitmap);
+    TextPaint paint  = new TextPaint() {{
+      setAntiAlias(true);
+      setTextAlign(TextPaint.Align.LEFT);
+      setTypeface(Typeface.createFromAsset(mContext.getAssets(), "fonts/Roboto/Roboto-Medium.ttf"));
+    }};
 
-    final int COLOR_BACKGROUND = ContextCompat.getColor(mContext, R.color.cardview_light_background);
-    final int COLOR_TITLE = ContextCompat.getColor(mContext, R.color.primary_text_default_material_light);
-    final int COLOR_SUBTITLE = ContextCompat.getColor(mContext, R.color.secondary_text_default_material_light);
-    final int COLOR_TEXT = COLOR_SUBTITLE;
+    //title
+    paint.setTextSize(SIZE_TITLE);
+    paint.setColor(ContextCompat.getColor(mContext, R.color.primary_text_default_material_light));
+    canvas.drawText(title, X, Y_TITLE, paint);
 
-    final float PIXEL_LINE_SPACING_EXTRA = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, dm);
+    //subtitle
+    paint.setTextSize(SIZE_SUBTITLE);
+    paint.setColor(ContextCompat.getColor(mContext, R.color.primary_text_disabled_material_light));
+    canvas.drawText(title, X, Y_SUBTITLE, paint);
 
-    final String TITLE = title;
-    final String SUBTITLE = subtitle;
-    final String TEXT = text;
-
-    Bitmap bitmap = Bitmap.createBitmap(PIXEL_IMAGE_WIDTH, PIXEL_IMAGE_HEIGHT, Bitmap.Config.ARGB_8888);
-    bitmap.eraseColor(COLOR_BACKGROUND);
-
-    Canvas canvas = new Canvas(bitmap);
-    TextPaint paint = new TextPaint();
-    Typeface typeface = Typeface.createFromAsset(mContext.getAssets(), "fonts/Roboto/Roboto-Medium.ttf");
-
-    paint.setAntiAlias(true);
-    paint.setTextSize(PIXEL_SIZE_TITLE);
-    paint.setColor(COLOR_TITLE);
-    paint.setTextAlign(Paint.Align.LEFT);
-    paint.setTypeface(typeface);
-
-    canvas.drawText(TITLE, PIXEL_POSITION_X_LEFT, PIXEL_POSITION_Y_TITLE, paint);
-
-    paint.setColor(COLOR_SUBTITLE);
-    paint.setTextSize(PIXEL_SIZE_SUBTITLE);
-    canvas.drawText(SUBTITLE, PIXEL_POSITION_X_LEFT, PIXEL_POSITION_Y_SUBTITLE, paint);
-
-    paint.setColor(COLOR_TEXT);
-    paint.setTextSize(PIXEL_SIZE_TEXT);
-
-    StaticLayout layout = new StaticLayout(TEXT, paint, PIXEL_POSITION_X_RIGHT - PIXEL_POSITION_X_LEFT, Layout.Alignment.ALIGN_NORMAL, 1.0f, PIXEL_LINE_SPACING_EXTRA, false);
-    canvas.translate(PIXEL_POSITION_X_LEFT, PIXEL_POSITION_Y_TEXT - PIXEL_SIZE_TEXT);
+    //since text needs to be wrapped, using a StaticLayout
+    paint.setColor(ContextCompat.getColor(mContext, R.color.secondary_text_default_material_light));
+    //text size same as subtitle size
+    StaticLayout layout = new StaticLayout(
+        text,
+        paint,
+        IMAGE_WIDTH - 2 * X,
+        Layout.Alignment.ALIGN_NORMAL,
+        1.0f,
+        LINE_SPACING,
+        false);
+    //16dp padding as per material design guidelines
+    canvas.translate(X, Y_SUBTITLE + X);
     layout.draw(canvas);
 
     return bitmap;
   }
 
-  protected Uri save(Bitmap bitmap) {
-    if (!mStorageDirectory.exists()) {
-      if (!mStorageDirectory.mkdirs()) {
+  public File save(Bitmap bitmap) {
+    if(!mStorageDirectory.exists()) {
+      if(!mStorageDirectory.mkdirs()) {
         return null;
       }
     }
 
-    String filename = "IMG_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".jpg";
-    File file = new File(mStorageDirectory.getPath() + File.separator + filename);
-
+    String filename = "IMG_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())
+        + (mFormat == Bitmap.CompressFormat.JPEG ? ".jpg" : ".png");
+    File   file     = new File(mStorageDirectory + File.separator + filename);
 
     try {
-      FileOutputStream out = new FileOutputStream(file);
-      bitmap.compress(mCompressFormat, 100, out);
-      out.flush();
-      out.close();
-    } catch (Exception e) {
+      FileOutputStream oStream = new FileOutputStream(file);
+      bitmap.compress(mFormat, 100, oStream);
+    } catch(FileNotFoundException e) {
       return null;
     }
 
-    return Uri.fromFile(file);
+    return file;
   }
 
-  public void setCompressFormat(Bitmap.CompressFormat format) {
-    this.mCompressFormat = format;
-  }
+  public void setCompressFormat(Bitmap.CompressFormat format) { mFormat = format; }
 }

@@ -39,6 +39,7 @@ import com.cocosw.bottomsheet.BottomSheet;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
+import java.io.File;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
@@ -46,9 +47,8 @@ public class MainActivity extends AppCompatActivity {
   private HashMap<String, String> mHashMap;
   private Button                  mButton;
 
-  private String getText() {
-    return
-        "\""
+  private String getText () {
+    return "\""
         + mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_4)
         + "\""
         + "\n"
@@ -60,10 +60,10 @@ public class MainActivity extends AppCompatActivity {
         + "\n"
         + "\n"
         + "- via "
-        + this.getApplicationContext().getResources().getString(R.string.app_name);
+        + this.getResources().getString(R.string.app_name);
   }
 
-  private void updateButtonText() {
+  private void updateButtonText () {
     SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
     Cursor cursor;
 
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         DatabaseContract.Table3.TABLE_NAME,
         null,
         DatabaseContract.Table3.COLUMN_NAME_0 + " = ?",
-        new String[]{mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_0)},
+        new String[] {mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_0)},
         null,
         null,
         null);
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @Override
-  protected void onCreate(Bundle savedInstanceState) {
+  protected void onCreate (Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
       toolbar.inflateMenu(R.menu.menu_card_view_toolbar);
       toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
         @Override
-        public boolean onMenuItemClick(MenuItem item) {
+        public boolean onMenuItemClick (MenuItem item) {
           switch (item.getItemId()) {
             case R.id.action_content_copy:
               ClipboardManager clipboardManager = (ClipboardManager)
@@ -128,8 +128,8 @@ public class MainActivity extends AppCompatActivity {
                   .items(R.array.image_format)
                   .itemsCallbackSingleChoice(0, new MaterialDialog.ListCallbackSingleChoice() {
                     @Override
-                    public boolean onSelection(MaterialDialog materialDialog, View view, int i,
-                                               CharSequence charSequence) {
+                    public boolean onSelection (MaterialDialog materialDialog, View view, int i,
+                                                CharSequence charSequence) {
                       switch (i) {
                         case 0:
                           ig.setCompressFormat(Bitmap.CompressFormat.JPEG);
@@ -147,11 +147,20 @@ public class MainActivity extends AppCompatActivity {
                   .negativeText(R.string.cancel)
                   .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
-                    public void onClick(MaterialDialog materialDialog,
-                                        DialogAction dialogAction) {
-                      //TO DO: create and save bitmap
-                      Toast.makeText(getApplicationContext(), R.string.saved_to_gallery,
-                          Toast.LENGTH_SHORT).show();
+                    public void onClick (MaterialDialog materialDialog,
+                                         DialogAction dialogAction) {
+                      File file = ig.save(ig.getBitmap(
+                          mHashMap.get(DatabaseContract.Table2.COLUMN_NAME_1),
+                          "Chapter " + mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_2) +
+                              ", Verse " + mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_3),
+                          mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_4)));
+
+                      if (file != null) {
+                        Toast.makeText(getApplicationContext(), R.string.saved_to_gallery,
+                            Toast.LENGTH_SHORT).show();
+                      } else {
+                        //TO DO: alert text "could not save file"
+                      }
                     }
                   })
                   .show();
@@ -168,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
     mButton = (Button) findViewById(R.id.btn_like);
     mButton.setOnClickListener(new View.OnClickListener() {
       @Override
-      public void onClick(View v) {
+      public void onClick (View v) {
         SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
         String id = mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_0);
 
@@ -182,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
           db.delete(
               DatabaseContract.Table3.TABLE_NAME,
               DatabaseContract.Table3.COLUMN_NAME_0 + " = ?",
-              new String[]{id});
+              new String[] {id});
         }
 
         mDbOpenHelper.close(db);
@@ -192,14 +201,14 @@ public class MainActivity extends AppCompatActivity {
 
     findViewById(R.id.btn_share).setOnClickListener(new View.OnClickListener() {
       @Override
-      public void onClick(View v) {
+      public void onClick (View v) {
         new BottomSheet.Builder(MainActivity.this)
             .title(R.string.share_via)
             .grid()
             .sheet(R.menu.menu_bottom_sheet_share)
             .listener(new DialogInterface.OnClickListener() {
               @Override
-              public void onClick(DialogInterface dialog, int which) {
+              public void onClick (DialogInterface dialog, int which) {
                 switch (which) {
                   case R.id.share_facebook:
                     break;
@@ -213,9 +222,30 @@ public class MainActivity extends AppCompatActivity {
                   case R.id.share_instagram:
                     if (ThirdPartyApplication.isInstalled(MainActivity.this,
                         "com.instagram.android")) {
-                      Intent intent = new Intent(Intent.ACTION_SEND);
-                    } else {
+                      ImageGenerator ig = new ImageGenerator(getApplicationContext());
+                      File file = ig.save(ig.getBitmap(
+                          mHashMap.get(DatabaseContract.Table2.COLUMN_NAME_1),
+                          "Chapter " + mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_2) +
+                              ", Verse " + mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_3),
+                          mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_4)));
 
+                      if (file != null) {
+                        final Uri URI = Uri.fromFile(file);
+                        startActivity(new Intent() {{
+                          setAction(Intent.ACTION_SEND);
+                          setPackage("com.instagram.android");
+                          setType("image/*");
+                          putExtra(Intent.EXTRA_STREAM, URI);
+                        }});
+                        Toast.makeText(getApplicationContext(), R.string.saved_to_gallery,
+                            Toast.LENGTH_SHORT).show();
+                      } else {
+                        //TO DO: alert text "could not save file"
+                      }
+                    } else {
+                      Toast.makeText(getApplicationContext(),
+                          R.string.you_dont_have_instagram_installed,
+                          Toast.LENGTH_SHORT).show();
                     }
 
                     break;
@@ -227,8 +257,8 @@ public class MainActivity extends AppCompatActivity {
                           .sheet(R.menu.menu_bottom_sheet_share_as)
                           .listener(new DialogInterface.OnClickListener() {
                             @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                              switch(which) {
+                            public void onClick (DialogInterface dialog, int which) {
+                              switch (which) {
                                 case R.id.share_as_text:
                                   startActivity(new Intent() {{
                                     setAction(Intent.ACTION_SEND);
@@ -239,7 +269,26 @@ public class MainActivity extends AppCompatActivity {
                                   break;
 
                                 case R.id.share_as_image:
+                                  ImageGenerator ig = new ImageGenerator(getApplicationContext());
+                                  File file = ig.save(ig.getBitmap(
+                                      mHashMap.get(DatabaseContract.Table2.COLUMN_NAME_1),
+                                      "Chapter " + mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_2) +
+                                          ", Verse " + mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_3),
+                                      mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_4)));
 
+                                  if (file != null) {
+                                    final Uri URI = Uri.fromFile(file);
+                                    startActivity(new Intent() {{
+                                      setAction(Intent.ACTION_SEND);
+                                      setPackage("com.whatsapp");
+                                      setType("image/*");
+                                      putExtra(Intent.EXTRA_STREAM, URI);
+                                    }});
+                                    Toast.makeText(getApplicationContext(), R.string.saved_to_gallery,
+                                        Toast.LENGTH_SHORT).show();
+                                  } else {
+                                    //TO DO: alert text "could not save file"
+                                  }
                                   break;
                               }
                             }
@@ -247,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
                           .show();
                     } else {
                       Toast.makeText(getApplicationContext(),
-                          R.string.you_dont_have_instagram_installed,
+                          R.string.you_dont_have_whatsapp_installed,
                           Toast.LENGTH_SHORT).show();
                     }
 
@@ -270,21 +319,21 @@ public class MainActivity extends AppCompatActivity {
     FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.btn_generate);
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
-      public void onClick(View v) {
+      public void onClick (View v) {
         SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
         Cursor cursor;
 
         cursor = db.rawQuery(DatabaseContract.Table1.QUERY_RANDOM_ROW, null);
         if (cursor.moveToFirst()) {
-          for (int i = 0; i < DatabaseContract.Table1.COLUMN_COUNT; ++i)
+          for (int i = 0 ; i < DatabaseContract.Table1.COLUMN_COUNT ; ++i)
             mHashMap.put(DatabaseContract.Table1.COLUMN_NAMES[i], cursor.getString(i));
         }
 
         cursor = db.query(
             DatabaseContract.Table2.TABLE_NAME,
-            new String[]{DatabaseContract.Table2.COLUMN_NAME_1},
+            new String[] {DatabaseContract.Table2.COLUMN_NAME_1},
             DatabaseContract.Table2.COLUMN_NAME_0 + " = ?",
-            new String[]{mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_1)},
+            new String[] {mHashMap.get(DatabaseContract.Table1.COLUMN_NAME_1)},
             null,
             null,
             null);
