@@ -25,81 +25,85 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class DatabaseOpenHelper extends SQLiteOpenHelper {
-  private Context mContext;
-  private String  mDbPath;
-  private String  mDbName;
-  private int     mDbVersion;
+  private Context        mContext;
+  private String         mDbPath;
+  private String         mDbName;
+  private int            mDbVersion;
+  
+  public  SQLiteDatabase db;
 
   public DatabaseOpenHelper(Context context, String dbName, int version) {
-    super(context, dbName, null, 1);
+    super(context, dbName, null, version);
     mContext   = context;
     mDbPath    = context.getApplicationInfo().dataDir + "/databases/";
     mDbName    = dbName;
     mDbVersion = version;
   }
 
-  public boolean exists() throws SQLiteException {
-    SQLiteDatabase db;
+  public boolean exists() {
+    SQLiteDatabase db = null;
 
     try {
       db = SQLiteDatabase.openDatabase(mDbPath + mDbName, null, SQLiteDatabase.OPEN_READONLY);
     }
     catch (SQLiteException e) {
-      throw e;
+      //database does not exist yet.
     }
 
-    if(db != null) {
+    if (db != null) {
       db.close();
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
 
-  public boolean create() {
-    try {
-      if(!this.exists()) {
-        //guaranteed not to throw exception, hence not handled.
-        super.getWritableDatabase();
-
-        try {
-          InputStream  iStream = mContext.getAssets().open(mDbName);
-          OutputStream oStream = new FileOutputStream(mDbPath + mDbName);
-          byte[]       buffer  = new byte[1024];
-          int          length;
-
-          while ((length = iStream.read(buffer)) > 0) {
-            oStream.write(buffer, 0, length);
-          }
-
-          iStream.close();
-          oStream.flush();
-          oStream.close();
-        } catch (IOException e) {
-          return false;
-        }
+  public void openDatabase(int flag) throws SQLiteException, IOException {
+    if (!exists()) {
+      if (flag == SQLiteDatabase.OPEN_READONLY) {
+        this.getReadableDatabase();
+      } else if (flag == SQLiteDatabase.OPEN_READWRITE) {
+        this.getWritableDatabase();
       }
-    } catch(SQLiteException e) {
-      return false;
+
+      try {
+        InputStream  iStream = mContext.getAssets().open(mDbName);
+        OutputStream oStream = new FileOutputStream(mDbPath + mDbName);
+        byte[]       buffer  = new byte[1024];
+        int          length;
+
+        while ((length = iStream.read(buffer)) > 0) {
+          oStream.write(buffer, 0, length);
+        }
+
+        iStream.close();
+        oStream.flush();
+        oStream.close();
+      } catch (IOException e) {
+        //TO-DO: check whether the streams close, possibility of memory leaks.
+        throw e;
+      }
     }
 
-    return true;
-  }
-
-  public synchronized void close(SQLiteDatabase db) {
-    if(db != null)
-      db.close();
-
-    super.close();
-  }
-
-  public SQLiteDatabase getWritableDatabase() throws SQLiteException {
     try {
-      return SQLiteDatabase.openDatabase(mDbPath + mDbName, null, SQLiteDatabase.OPEN_READWRITE);
-    } catch(SQLiteException e) {
+      if (flag == SQLiteDatabase.OPEN_READONLY) {
+        db = SQLiteDatabase.openDatabase(mDbPath + mDbName, null,
+            SQLiteDatabase.OPEN_READONLY);
+      } else if (flag == SQLiteDatabase.OPEN_READWRITE) {
+        db = SQLiteDatabase.openDatabase(mDbPath + mDbName, null,
+            SQLiteDatabase.OPEN_READWRITE);
+      }
+    } catch (SQLiteException e) {
       throw e;
     }
+  }
+
+  @Override
+  public synchronized void close() {
+    if (db != null) {
+      db.close();
+    }
+    super.close();
   }
 
   @Override

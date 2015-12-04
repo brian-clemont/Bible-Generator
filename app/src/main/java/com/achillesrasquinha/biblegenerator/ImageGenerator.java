@@ -18,7 +18,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Typeface;
-import android.os.Environment;
 import android.support.v4.content.ContextCompat;
 import android.text.Layout;
 import android.text.StaticLayout;
@@ -26,25 +25,14 @@ import android.text.TextPaint;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 public class ImageGenerator {
   private static final int IMAGE_WIDTH  = 512;
   private static final int IMAGE_HEIGHT = IMAGE_WIDTH;
 
-  private Context               mContext;
-  private File                  mStorageDirectory;
-  private Bitmap.CompressFormat mFormat;
+  private Context mContext;
 
   public ImageGenerator(Context context) {
     mContext          = context;
-    mStorageDirectory = new File(Environment.getExternalStoragePublicDirectory(
-        Environment.DIRECTORY_PICTURES), context.getString(R.string.app_name));
-    mFormat           = Bitmap.CompressFormat.JPEG;
   }
 
   public Bitmap getBitmap(String title, String subtitle, String text) {
@@ -100,27 +88,4 @@ public class ImageGenerator {
 
     return bitmap;
   }
-
-  public File save(Bitmap bitmap) {
-    if(!mStorageDirectory.exists()) {
-      if(!mStorageDirectory.mkdirs()) {
-        return null;
-      }
-    }
-
-    String filename = "IMG_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())
-        + (mFormat == Bitmap.CompressFormat.JPEG ? ".jpg" : ".png");
-    File   file     = new File(mStorageDirectory + File.separator + filename);
-
-    try {
-      FileOutputStream oStream = new FileOutputStream(file);
-      bitmap.compress(mFormat, 100, oStream);
-    } catch(FileNotFoundException e) {
-      return null;
-    }
-
-    return file;
-  }
-
-  public void setCompressFormat(Bitmap.CompressFormat format) { mFormat = format; }
 }

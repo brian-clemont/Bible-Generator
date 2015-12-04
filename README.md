@@ -1,2 +1,2 @@
 # Bible-Generator
-Android Application to generate a random verse from the Holy Bible (King James Version).
+An android application to generate a random verse from the Holy Bible (King James Version).

@@ -1,0 +1,76 @@
+package com.achillesrasquinha.biblegenerator;
+
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+
+import java.util.ArrayList;
+
+public class FavouritesActivity extends AppCompatActivity {
+  private DatabaseOpenHelper mDbOpenHelper;
+  private ArrayList<String> list;
+
+
+  @Override
+  public boolean onCreateOptionsMenu (Menu menu) {
+    getMenuInflater().inflate(R.menu.menu_favourites, menu);
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected (MenuItem item) {
+    switch (item.getItemId()) {
+      case R.id.action_about:
+        startActivity(new Intent() {{
+          setClass(FavouritesActivity.this, AboutActivity.class);
+        }});
+        return true;
+
+      default:
+        return super.onOptionsItemSelected(item);
+    }
+  }
+
+  protected void onCreate (Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_favourites);
+    setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+
+    AdView lAdView = (AdView) findViewById(R.id.ad_view);
+    lAdView.loadAd(new AdRequest.Builder().addTestDevice("B2237171B30BD9744A213A70313165F0")
+        .build());
+
+    mDbOpenHelper = new DatabaseOpenHelper(this, DatabaseContract.DATABASE_NAME,
+        DatabaseContract.DATABASE_VERSION);
+
+    SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
+    Cursor cursor;
+
+    cursor = db.rawQuery("SELECT * " + " FROM " + DatabaseContract.Table1.TABLE_NAME + " WHERE " +
+        DatabaseContract.Table1.COLUMN_NAME_0 + " IN (SELECT " +
+        DatabaseContract.Table3.COLUMN_NAME_0 + " FROM " + DatabaseContract.Table3.TABLE_NAME +
+        ")", null);
+
+    ArrayList<String> list = new ArrayList<String>();
+    if (cursor.moveToFirst()) {
+      do {
+        list.add(cursor.getString(0));
+      }
+      while (cursor.moveToNext());
+    }
+
+    RecyclerView rv = (RecyclerView) findViewById(R.id.recycler_view);
+    rv.setLayoutManager(new LinearLayoutManager(this));
+    rv.setAdapter(new CardViewAdapter(this, list));
+  }
+}

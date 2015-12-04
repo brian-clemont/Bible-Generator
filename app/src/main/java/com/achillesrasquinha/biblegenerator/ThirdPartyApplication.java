@@ -19,6 +19,13 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 
 public class ThirdPartyApplication {
+  public final class PackageName {
+    public static final String INSTAGRAM = "com.instagram.android";
+    public static final String WHATSAPP  = "com.whatsapp";
+
+    public PackageName() { }
+  }
+
   public static boolean isInstalled(Context context, String packageName) {
     PackageManager pm = context.getPackageManager();
     try {

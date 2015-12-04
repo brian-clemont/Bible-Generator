@@ -41,26 +41,11 @@ limitations under the License.
         ads:adSize="BANNER"
         ads:adUnitId="@string/banner_ad_unit_id" />
 
-    <ScrollView
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/ad_view">
-
-        <include layout="@layout/card_view" />
-
-    </ScrollView>
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btn_generate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_refresh_white_24dp"
-        app:elevation="6dp"
-        app:fabSize="normal"
-        app:pressedTranslationZ="12dp" />
+        android:layout_below="@id/ad_view"
+        android:scrollbars="vertical" />
 
 </RelativeLayout>
