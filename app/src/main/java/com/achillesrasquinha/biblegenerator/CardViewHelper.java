@@ -112,7 +112,7 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
         ClipData cd = ClipData.newPlainText(mAppName, getPlainText());
           mClipboardManager.setPrimaryClip(cd);
 
-        Snackbar.make(mCoordinatorLayout, R.string.message_copied_to_clipboard,
+        Snackbar.make(mCoordinatorLayout, R.string.message_copied_to_clipboard + getPlainText(),
             Snackbar.LENGTH_SHORT).show();
 
         return true;

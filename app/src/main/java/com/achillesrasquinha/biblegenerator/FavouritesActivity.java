@@ -31,10 +31,16 @@ import com.google.android.gms.ads.AdView;
 
 import java.util.ArrayList;
 
-public class FavouritesActivity extends AppCompatActivity {
+public class FavouritesActivity extends AppCompatActivity implements CardViewAdapter.OnViewClickListener {
   private DatabaseOpenHelper mDbOpenHelper;
-  private ArrayList<String> list;
+  private ArrayList<String>  mArrayList;
 
+  private Toolbar            mToolbar;
+  private AdRequest.Builder  mAdRequestBuilder;
+  private AdView             mAdView;
+
+  private RecyclerView       mRecyclerView;
+  private CardViewAdapter    mCardViewAdapter;
 
   @Override
   public boolean onCreateOptionsMenu (Menu menu) {
@@ -59,6 +65,20 @@ public class FavouritesActivity extends AppCompatActivity {
   protected void onCreate (Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_favourites);
+
+    mToolbar = (Toolbar) findViewById(R.id.toolbar);
+    mAdView  = (AdView)  findViewById(R.id.ad_view);
+
+    setSupportActionBar(mToolbar);
+
+    mAdRequestBuilder = new AdRequest.Builder();
+    if (DEV_MODE) {
+
+    }
+
+
+
+
     setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
     AdView lAdView = (AdView) findViewById(R.id.ad_view);
@@ -76,16 +96,29 @@ public class FavouritesActivity extends AppCompatActivity {
         DatabaseContract.Table3.COLUMN_NAME_0 + " FROM " + DatabaseContract.Table3.TABLE_NAME +
         ")", null);
 
-    ArrayList<String> list = new ArrayList<String>();
+    ArrayList<String> mArrayList = new ArrayList<String>();
     if (cursor.moveToFirst()) {
       do {
-        list.add(cursor.getString(0));
+        mArrayList.add(cursor.getString(0));
       }
       while (cursor.moveToNext());
     }
 
     RecyclerView rv = (RecyclerView) findViewById(R.id.recycler_view);
     rv.setLayoutManager(new LinearLayoutManager(this));
-    rv.setAdapter(new CardViewAdapter(this, list, (CoordinatorLayout) findViewById(R.id.coordinator_layout)));
+    rv.setAdapter(new CardViewAdapter(this, mArrayList));
+
+
+    mCardViewAdapter.setOnViewClickListener(this);
+  }
+
+  @Override
+  public void onMenuItemClick(Menu item, int position) {
+
+  }
+
+  @Override
+  public void onClick(View view, int position) {
+
   }
 }

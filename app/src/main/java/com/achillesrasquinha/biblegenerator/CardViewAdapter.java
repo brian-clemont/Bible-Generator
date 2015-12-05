@@ -19,16 +19,19 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 
 import java.io.IOException;
@@ -37,20 +40,21 @@ import java.util.HashMap;
 
 public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHolder> {
   private static final String  TAG = "DEV_LOG";
+  
+  public interface OnViewClickListener {
+    //Handling click-events on the Activity side.
+    boolean onMenuItemClick(MenuItem item, int position);
+    void    onClick(View view, int position);
+  }
 
   private Context                 mContext;
-  private ArrayList<String>       mArrayList;
   private DatabaseOpenHelper      mDbOpenHelper;
-  private CoordinatorLayout       mCoordinatorLayout;
-  private HashMap<String, String> mHashMap;
+  private ArrayList<String>       mDataset;
 
-  //use sensitively.
-  private CardViewHelper          mCardViewHelper;
-
-  private MaterialDialog.Builder  mDialogBuilder;
+  private OnViewClickListener     mListener;
 
   public class ViewHolder extends RecyclerView.ViewHolder implements
-      Toolbar.OnMenuItemClickListener {
+      Toolbar.OnMenuItemClickListener, View.OnClickListener {
     public Toolbar  mToolbar;
     public TextView mTextView1;
     public TextView mTextView2;
@@ -67,35 +71,37 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
       mTextView3 = (TextView) view.findViewById(R.id.text_view_supporting_text);
       mButton1   = (Button)   view.findViewById(R.id.btn_like);
       mButton2   = (Button)   view.findViewById(R.id.btn_share);
-        
-      vh.mButton1.setText(R.string.btn_dislike);
+
+      mToolbar.inflateMenu(R.menu.menu_card_view_toolbar);
+      mButton1.setText(R.string.btn_dislike);
+
+      mToolbar.setOnMenuItemClickListener(this);
+      mButton1.setOnClickListener(this);
+      mButton2.setOnClickListener(this);
     }
 
     @Override
-    public void onMenuItemClick(MenuItem item) {
+    public boolean onMenuItemClick(MenuItem item) {
+      return mListener.onMenuItemClick(item, getAdapterPosition());
+    }
 
+    @Override
+    public void onClick(View view) {
+      mListener.onClick(view, getAdapterPosition());
     }
   }
 
-  public CardViewAdapter (Context context, ArrayList<String> list, CoordinatorLayout layout) {
-    mContext           = context;
-    mArrayList         = list;
-    mDbOpenHelper      = new DatabaseOpenHelper(context, DatabaseContract.DATABASE_NAME,
+  public CardViewAdapter (Context context, ArrayList<String> list) {
+    mContext      = context;
+    mDataset      = list;
+    mDbOpenHelper = new DatabaseOpenHelper(context, DatabaseContract.DATABASE_NAME,
         DatabaseContract.DATABASE_VERSION);
-    mCoordinatorLayout = layout;
-    mHashMap           = new HashMap<String, String>();
-
-    mCardViewHelper    = new CardViewHelper(context, layout);
-
-    mDialogBuilder     = new MaterialDialog.Builder((Activity) mContext)
-        .title(R.string.dialog_title_remove_from_favourites)
-        .positiveText(R.string.btn_dialog_remove)
-        .negativeText(R.string.btn_dialog_cancel);
   }
 
   @Override
   public CardViewAdapter.ViewHolder onCreateViewHolder (ViewGroup parent, int viewType) {
-    View       view = LayoutInflater.from(parent.getContext());    
+    View       view = LayoutInflater.from(parent.getContext())
+                          .inflate(R.layout.card_view, parent, false);;
     ViewHolder vh   = new ViewHolder(view);
 
     return vh;
@@ -103,7 +109,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
 
   @Override
   public void onBindViewHolder (ViewHolder vh, int position) {
-    //From the Docs: "RecyclerView will not call this method again if the position of the item 
+    //From the DOCS: "RecyclerView will not call this method again if the position of the item 
     //                changes in the data set unless the item itself is invalidated or the new
     //                position cannot be determined. For this reason, you should only use the 
     //                position parameter while acquiring the related data item inside this method 
@@ -124,33 +130,26 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
         DatabaseContract.Table1.TABLE_NAME,
         null,
         DatabaseContract.Table1.COLUMN_NAME_0 + " = ?",
-        new String[] { mArrayList.get(position) },
+        new String[] { mDataset.get(position) },
         null,
         null,
         null);
-    if (cursor.moveToFirst()) {
-      mHashMap.put(MapKeys.CHAPTER, cursor.getString(2));
-      mHashMap.put(MapKeys.VERSE  , cursor.getString(3));
-      mHashMap.put(MapKeys.TEXT   , cursor.getString(4));
+    if(cursor.moveToFirst()) {
+      vh.mTextView2.setText("Chapter " + cursor.getString(2) + ", Verse " + cursor.getString(3));
+      vh.mTextView3.setText(cursor.getString(4));
     }
 
     cursor = mDbOpenHelper.db.query(
         DatabaseContract.Table2.TABLE_NAME,
         new String[] {DatabaseContract.Table2.COLUMN_NAME_1},
         DatabaseContract.Table2.COLUMN_NAME_0 + " = ?",
-        new String[] { cursor.getString(0) },
+        new String[] { cursor.getString(1) },
         null,
         null,
         null);
     if (cursor.moveToFirst()) {
-      mHashMap.put(MapKeys.TITLE, cursor.getString(0));
+      vh.mTextView.setText(cursor.getString(0));
     }
-
-    mCardViewHelper.setDataset(mHashMap);
-
-    vh.mTextView1.setText(helper.title);
-    vh.mTextView2.setText(helper.subtitle);
-    vh.mTextView3.setText(helper.text);
 
     cursor.close();
     mDbOpenHelper.close();
@@ -158,6 +157,10 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
 
   @Override
   public int getItemCount () {
-    return mArrayList.size();
+    return mDataset.size();
+  }
+
+  public void setOnViewClickListener(OnViewClickListener listener) {
+    mListener = listener;
   }
 }
