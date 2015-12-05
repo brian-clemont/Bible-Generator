@@ -17,9 +17,6 @@ limitations under the License.
 -->
 
 <resources>
-    <string name="yes">Yes</string>
-    <string name="remove_from_favourites">Remove from favourites?</string>
-    <string name="remove">Remove</string>
     <string name="favourites">Favourites</string>
     <string name="about">About</string>
 
@@ -29,8 +26,6 @@ limitations under the License.
     <string name="btn_dislike">DISLIKE</string>
     <string name="btn_share">SHARE</string>
     <string name="bottom_sheet_share_title">Share via</string>
-    <string name="btn_dialog_save">Save</string>
-    <string name="btn_dialog_cancel">Cancel</string>
     <string name="message_copied_to_clipboard">Copied to clipboard.</string>
     <string name="message_saved_to_gallery">Saved to gallery.</string>
     <string name="message_unable_to_save_file">Unable to save file.</string>
@@ -39,4 +34,7 @@ limitations under the License.
     <string name="bottom_sheet_share_as_title">Share as</string>
     <string name="title_copy">Copy</string>
     <string name="title_save">Save</string>
+    <string name="dialog_title_remove_from_favourites">Remove from favourites?</string>
+    <string name="btn_dialog_remove">Remove</string>
+    <string name="btn_dialog_cancel">Cancel</string>
 </resources>

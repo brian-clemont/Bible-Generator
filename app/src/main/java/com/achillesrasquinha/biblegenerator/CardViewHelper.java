@@ -79,12 +79,12 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
   }
 
   public void setDataset(HashMap<String, String> map) {
-    mHashMap  = map;
+    mHashMap = map;
 
     //providing global access since retriving from the HashMap is slow.
     title    = mHashMap.get(MapKeys.TITLE);
-    mChapter  = mHashMap.get(MapKeys.CHAPTER);
-    mVerse    = mHashMap.get(MapKeys.VERSE);
+    mChapter = mHashMap.get(MapKeys.CHAPTER);
+    mVerse   = mHashMap.get(MapKeys.VERSE);
     subtitle = "Chapter " + mChapter + ", Verse " + mVerse;
     text     = mHashMap.get(MapKeys.TEXT);
   }

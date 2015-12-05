@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     mAdRequestBuilder = new AdRequest.Builder();
     if (DEV_MODE) {
+      mAdRequestBuilder.addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
       mAdRequestBuilder.addTestDevice("B2237171B30BD9744A213A70313165F0");
     }
 
@@ -157,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } catch(SQLiteException e) {
           Log.d(TAG, "Unable to open database after it exists.");
           //TO-DO: Handle. Display dialog error, maybe.
-        } 
+        }
 
         Cursor cursor;
 

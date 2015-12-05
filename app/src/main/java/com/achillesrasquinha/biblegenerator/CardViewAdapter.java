@@ -1,107 +1,163 @@
+// Copyright 2015 Achilles Rasquinha
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package com.achillesrasquinha.biblegenerator;
 
+import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHolder> {
-  public ArrayList<String>  list;
-  public DatabaseOpenHelper mDbOpenHelper;
-  public Context            mContext;
+  private static final String  TAG = "DEV_LOG";
 
-  public class ViewHolder extends RecyclerView.ViewHolder {
-    public Toolbar toolbar;
-    public TextView tv1;
-    public TextView tv2;
-    public TextView tv3;
-    public Button   button1;
-    public Button   button2;
+  private Context                 mContext;
+  private ArrayList<String>       mArrayList;
+  private DatabaseOpenHelper      mDbOpenHelper;
+  private CoordinatorLayout       mCoordinatorLayout;
+  private HashMap<String, String> mHashMap;
+
+  //use sensitively.
+  private CardViewHelper          mCardViewHelper;
+
+  private MaterialDialog.Builder  mDialogBuilder;
+
+  public class ViewHolder extends RecyclerView.ViewHolder implements
+      Toolbar.OnMenuItemClickListener {
+    public Toolbar  mToolbar;
+    public TextView mTextView1;
+    public TextView mTextView2;
+    public TextView mTextView3;
+    public Button   mButton1;
+    public Button   mButton2;
 
     public ViewHolder (View view) {
       super(view);
-      toolbar = (Toolbar) view.findViewById(R.id.card_view_toolbar);
-      toolbar.inflateMenu(R.menu.menu_card_view_toolbar);
-      tv1     = (TextView) view.findViewById(R.id.text_view_title);
-      tv2     = (TextView) view.findViewById(R.id.text_view_subtitle);
-      tv3     = (TextView) view.findViewById(R.id.text_view_supporting_text);
-      button1 = (Button) view.findViewById(R.id.btn_like);
-      button2 = (Button) view.findViewById(R.id.btn_share);
+
+      mToolbar   = (Toolbar ) view.findViewById(R.id.card_view_toolbar);
+      mTextView1 = (TextView) view.findViewById(R.id.text_view_title);
+      mTextView2 = (TextView) view.findViewById(R.id.text_view_subtitle);
+      mTextView3 = (TextView) view.findViewById(R.id.text_view_supporting_text);
+      mButton1   = (Button)   view.findViewById(R.id.btn_like);
+      mButton2   = (Button)   view.findViewById(R.id.btn_share);
+        
+      vh.mButton1.setText(R.string.btn_dislike);
+    }
+
+    @Override
+    public void onMenuItemClick(MenuItem item) {
+
     }
   }
 
-  public CardViewAdapter (Context context, ArrayList<String> list) {
-    this.list = list;
-    mDbOpenHelper = new DatabaseOpenHelper(context, DatabaseContract.DATABASE_NAME,
+  public CardViewAdapter (Context context, ArrayList<String> list, CoordinatorLayout layout) {
+    mContext           = context;
+    mArrayList         = list;
+    mDbOpenHelper      = new DatabaseOpenHelper(context, DatabaseContract.DATABASE_NAME,
         DatabaseContract.DATABASE_VERSION);
+    mCoordinatorLayout = layout;
+    mHashMap           = new HashMap<String, String>();
+
+    mCardViewHelper    = new CardViewHelper(context, layout);
+
+    mDialogBuilder     = new MaterialDialog.Builder((Activity) mContext)
+        .title(R.string.dialog_title_remove_from_favourites)
+        .positiveText(R.string.btn_dialog_remove)
+        .negativeText(R.string.btn_dialog_cancel);
   }
 
   @Override
   public CardViewAdapter.ViewHolder onCreateViewHolder (ViewGroup parent, int viewType) {
-    return new ViewHolder(LayoutInflater.from(parent.getContext())
-        .inflate(R.layout.card_view, parent, false));
+    View       view = LayoutInflater.from(parent.getContext());    
+    ViewHolder vh   = new ViewHolder(view);
+
+    return vh;
   }
 
   @Override
   public void onBindViewHolder (ViewHolder vh, int position) {
-    SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
+    //From the Docs: "RecyclerView will not call this method again if the position of the item 
+    //                changes in the data set unless the item itself is invalidated or the new
+    //                position cannot be determined. For this reason, you should only use the 
+    //                position parameter while acquiring the related data item inside this method 
+    //                and should not keep a copy of it."
+
+    try {
+      mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+    } catch(IOException e) {
+      //Do nothing, has been handled during MainActivity.onCreate
+    } catch(SQLiteException e) {
+      Log.d(TAG, "Unable to open database after it exists.");
+      //TO-DO: Handle. Display dialog error, maybe.
+    }
+
     Cursor cursor;
 
-    cursor = db.query(
+    cursor = mDbOpenHelper.db.query(
         DatabaseContract.Table1.TABLE_NAME,
         null,
         DatabaseContract.Table1.COLUMN_NAME_0 + " = ?",
-        new String[] { list.get(position) },
+        new String[] { mArrayList.get(position) },
         null,
         null,
         null);
-
-
-    HashMap<String, String> map = new HashMap<String, String>();
-
     if (cursor.moveToFirst()) {
-      for (int i = 0 ; i < DatabaseContract.Table1.COLUMN_COUNT ; ++i)
-        map.put(DatabaseContract.Table1.COLUMN_NAME[i], cursor.getString(i));
+      mHashMap.put(MapKeys.CHAPTER, cursor.getString(2));
+      mHashMap.put(MapKeys.VERSE  , cursor.getString(3));
+      mHashMap.put(MapKeys.TEXT   , cursor.getString(4));
     }
 
-    cursor = db.query(
+    cursor = mDbOpenHelper.db.query(
         DatabaseContract.Table2.TABLE_NAME,
         new String[] {DatabaseContract.Table2.COLUMN_NAME_1},
         DatabaseContract.Table2.COLUMN_NAME_0 + " = ?",
-        new String[] {map.get(DatabaseContract.Table1.COLUMN_NAME_1)},
+        new String[] { cursor.getString(0) },
         null,
         null,
         null);
-
     if (cursor.moveToFirst()) {
-      map.put(DatabaseContract.Table2.COLUMN_NAME_1, cursor.getString(0));
+      mHashMap.put(MapKeys.TITLE, cursor.getString(0));
     }
 
-    //CardViewHelper helper = new CardViewHelper(mContext, map);
+    mCardViewHelper.setDataset(mHashMap);
 
-    //helper.setToolbar(vh.toolbar);
-
-    //helper.setTextView(vh.tv1, CardViewHelper.TEXT_VIEW_TITLE);
-    //helper.setTextView(vh.tv1, CardViewHelper.TEXT_VIEW_SUBTITLE);
-    //helper.setTextView(vh.tv1, CardViewHelper.TEXT_VIEW_TEXT);
-
-    //helper.setButton(vh.button2, CardViewHelper.BUTTON_SHARE);
+    vh.mTextView1.setText(helper.title);
+    vh.mTextView2.setText(helper.subtitle);
+    vh.mTextView3.setText(helper.text);
 
     cursor.close();
-    db.close();
+    mDbOpenHelper.close();
   }
 
   @Override
   public int getItemCount () {
-    return list.size();
+    return mArrayList.size();
   }
 }

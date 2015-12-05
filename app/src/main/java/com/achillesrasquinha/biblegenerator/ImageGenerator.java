@@ -17,6 +17,7 @@ package com.achillesrasquinha.biblegenerator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Point;
 import android.graphics.Typeface;
 import android.support.v4.content.ContextCompat;
 import android.text.Layout;
@@ -26,64 +27,81 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
 public class ImageGenerator {
-  private static final int IMAGE_WIDTH  = 512;
-  private static final int IMAGE_HEIGHT = IMAGE_WIDTH;
+  private Context        mContext;
+  
+  private Point          mImageSize;
+  private int            mX;
+  private int            mYTitle;
+  private int            mYSubtitle;
+  private float          mSizeTitle;
+  private float          mSizeSubtitle;
+  private float          mLineSpacing;
 
-  private Context mContext;
+  private TextPaint      mTextPaint;
+
+  private int            mColor1;
+  private int            mColor2;
+  private int            mColor3;
 
   public ImageGenerator(Context context) {
-    mContext = context;
+    mContext         = context;
+
+    DisplayMetrics m = mContext.getResources().getDisplayMetrics();
+
+    mImageSize       = new Point();
+    mImageSize.x     = m.widthPixels;
+    mImageSize.y     = mImageSize.x;
+
+    mX               = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, m));
+    mSizeTitle       = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,  24, m);
+    mYTitle          = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, m)
+        + mSizeTitle);
+    mSizeSubtitle    = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,  14, m);
+    mYSubtitle       = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12, m)
+        + mYTitle + mSizeSubtitle);
+    mLineSpacing     = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,  8, m);
+
+    mTextPaint       = new TextPaint();
+    mTextPaint.setAntiAlias(true);
+    mTextPaint.setTextAlign(TextPaint.Align.LEFT);
+    mTextPaint.setTypeface(Typeface.createFromAsset(mContext.getAssets(),
+        "fonts/Roboto/Roboto-Medium.ttf"));
+
+    mColor1 = ContextCompat.getColor(mContext, R.color.primary_text_default_material_light);
+    mColor2 = ContextCompat.getColor(mContext, R.color.primary_text_disabled_material_light);
+    mColor3 = ContextCompat.getColor(mContext, R.color.secondary_text_default_material_light);
   }
 
   public Bitmap getBitmap(String title, String subtitle, String text) {
-    final DisplayMetrics DISPLAY_METRICS = mContext.getResources().getDisplayMetrics();
-    final int            X               = Math.round(TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_DIP, 16, DISPLAY_METRICS));
-    final float          SIZE_TITLE      = TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_SP,  24, DISPLAY_METRICS);
-    final int            Y_TITLE         = Math.round(TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_DIP, 24, DISPLAY_METRICS) + SIZE_TITLE);
-    final float          SIZE_SUBTITLE   = TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_SP,  14, DISPLAY_METRICS);
-    final int            Y_SUBTITLE      = Math.round(TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_DIP, 12, DISPLAY_METRICS) + Y_TITLE + SIZE_SUBTITLE);
-    final float          LINE_SPACING    = TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_DIP,  8, DISPLAY_METRICS);
-
-    Bitmap bitmap = Bitmap.createBitmap(IMAGE_WIDTH, IMAGE_HEIGHT, Bitmap.Config.ARGB_8888);
+    Bitmap bitmap = Bitmap.createBitmap(mImageSize.x, mImageSize.y, Bitmap.Config.ARGB_8888);
     //convert bitmap to card view background color
     bitmap.eraseColor(ContextCompat.getColor(mContext, R.color.cardview_light_background));
 
-    Canvas    canvas = new Canvas(bitmap);
-    TextPaint paint  = new TextPaint() {{
-      setAntiAlias(true);
-      setTextAlign(TextPaint.Align.LEFT);
-      setTypeface(Typeface.createFromAsset(mContext.getAssets(), "fonts/Roboto/Roboto-Medium.ttf"));
-    }};
+    Canvas canvas = new Canvas(bitmap);   
 
     //title
-    paint.setTextSize(SIZE_TITLE);
-    paint.setColor(ContextCompat.getColor(mContext, R.color.primary_text_default_material_light));
-    canvas.drawText(title, X, Y_TITLE, paint);
+    mTextPaint.setTextSize(mSizeTitle);
+    mTextPaint.setColor(mColor1);
+    canvas.drawText(title, mX, mYTitle, mTextPaint);
 
     //subtitle
-    paint.setTextSize(SIZE_SUBTITLE);
-    paint.setColor(ContextCompat.getColor(mContext, R.color.primary_text_disabled_material_light));
-    canvas.drawText(subtitle, X, Y_SUBTITLE, paint);
+    mTextPaint.setTextSize(mSizeSubtitle);
+    mTextPaint.setColor(mColor2);
+    canvas.drawText(subtitle, mX, mYSubtitle, mTextPaint);
 
     //since text needs to be wrapped, using a StaticLayout
-    paint.setColor(ContextCompat.getColor(mContext, R.color.secondary_text_default_material_light));
+    mTextPaint.setColor(mColor3);
     //text size same as subtitle size
     StaticLayout layout = new StaticLayout(
         text,
-        paint,
-        IMAGE_WIDTH - 2 * X,
+        mTextPaint,
+        mImageSize.x - 2 * mX,
         Layout.Alignment.ALIGN_NORMAL,
         1.0f,
-        LINE_SPACING,
+        mLineSpacing,
         false);
     //16dp padding as per material design guidelines
-    canvas.translate(X, Y_SUBTITLE + X);
+    canvas.translate(mX, mYSubtitle + mX);
     layout.draw(canvas);
 
     return bitmap;
