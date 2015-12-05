@@ -65,23 +65,28 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
       } else if (flag == SQLiteDatabase.OPEN_READWRITE) {
         this.getWritableDatabase();
       }
-
+      InputStream  iStream = null;
+      OutputStream oStream = null;
       try {
-        InputStream  iStream = mContext.getAssets().open(mDbName);
-        OutputStream oStream = new FileOutputStream(mDbPath + mDbName);
+        iStream = mContext.getAssets().open(mDbName);
+        oStream = new FileOutputStream(mDbPath + mDbName);
         byte[]       buffer  = new byte[1024];
         int          length;
 
         while ((length = iStream.read(buffer)) > 0) {
           oStream.write(buffer, 0, length);
         }
-
-        iStream.close();
-        oStream.flush();
-        oStream.close();
       } catch (IOException e) {
-        //TO-DO: check whether the streams close, possibility of memory leaks.
         throw e;
+      } finally {
+        if (iStream != null) {
+          iStream.close();
+        }
+
+        if (oStream != null) {
+          oStream.flush();
+          oStream.close();
+        }
       }
     }
 

@@ -139,6 +139,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     mFab.setOnClickListener(this);
     mFab.performClick();
 
+    //CardViewHelper has an updated HashMap since FAB has been clicked once.
+    //Hence no need to refresh each view until clicked.
+    mToolbar2.setOnMenuItemClickListener(mCardViewHelper);
+    mButton2.setOnClickListener(mCardViewHelper);
     mButton1.setOnClickListener(this);
   }
 
@@ -179,11 +183,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mCardViewHelper.setDataset(mHashMap);
 
-        mToolbar2.setOnMenuItemClickListener(mCardViewHelper.getToolbarOnMenuItemClickListener());
-        mTextView1.setText(mCardViewHelper.getText(CardViewHelper.TEXT_VIEW_TITLE));
-        mTextView2.setText(mCardViewHelper.getText(CardViewHelper.TEXT_VIEW_SUBTITLE));
-        mTextView3.setText(mCardViewHelper.getText(CardViewHelper.TEXT_VIEW_TEXT));
-        mButton2.setOnClickListener(mCardViewHelper.getOnClickListener(CardViewHelper.BUTTON_SHARE));
+        mTextView1.setText(mCardViewHelper.title);
+        mTextView2.setText(mCardViewHelper.subtitle);
+        mTextView3.setText(mCardViewHelper.text);
 
         cursor = mDbOpenHelper.db.query(
             DatabaseContract.Table3.TABLE_NAME,
@@ -194,8 +196,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             null,
             null);
 
-        mButton1.setText(getString(cursor.moveToFirst() ? R.string.btn_dislike
-            : R.string.btn_like));
+        mButton1.setText(cursor.moveToFirst() ? R.string.btn_dislike : R.string.btn_like);
 
         cursor.close();
         mDbOpenHelper.close();
@@ -204,30 +205,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
       case R.id.btn_like:
         try {
-          mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+          mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
         } catch(IOException e) {
           //Do nothing, has been handled during onCreate
         } catch(SQLiteException e) {
           Log.d(TAG, "Unable to open database after it exists.");
           //TO-DO: Handle. Display dialog error, maybe.
-        } 
+        }
 
         final String ID = mHashMap.get(MapKeys.ID);
 
         if (mButton1.getText().equals(getString(R.string.btn_like))) {
-
           ContentValues cv = new ContentValues();
           cv.put(DatabaseContract.Table3.COLUMN_NAME_0, Integer.parseInt(ID));
           mDbOpenHelper.db.insert(DatabaseContract.Table3.TABLE_NAME, null, cv);
 
-          mButton1.setText(getString(R.string.btn_dislike));
+          mButton1.setText(R.string.btn_dislike);
         } else {
           mDbOpenHelper.db.delete(
               DatabaseContract.Table3.TABLE_NAME,
               DatabaseContract.Table3.COLUMN_NAME_0 + " = ?",
               new String[] {ID});
 
-          mButton1.setText(getString(R.string.btn_like));
+          mButton1.setText(R.string.btn_like);
         }
 
         mDbOpenHelper.close();
