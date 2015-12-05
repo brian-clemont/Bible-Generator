@@ -8,7 +8,6 @@
     <string name="unable_to_save_file">Unable to save file.</string>
     <string name="share_as">Share as</string>
     <string name="copy">Copy</string>
-    <string name="copied_to_clipboard">Copied to clipboard.</string>
     <string name="save_as">Save as</string>
     <string name="remove">Remove</string>
     <string-array name="image_format">
@@ -29,4 +28,5 @@
     <string name="bottom_sheet_share_title">Share via</string>
     <string name="btn_dialog_save">Save</string>
     <string name="btn_dialog_cancel">Cancel</string>
+    <string name="message_copied_to_clipboard">Copied to clipboard.</string>
 </resources>

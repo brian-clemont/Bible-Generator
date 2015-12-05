@@ -86,15 +86,15 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
       map.put(DatabaseContract.Table2.COLUMN_NAME_1, cursor.getString(0));
     }
 
-    CardViewHelper helper = new CardViewHelper(mContext, map);
+    //CardViewHelper helper = new CardViewHelper(mContext, map);
 
-    helper.setToolbar(vh.toolbar);
+    //helper.setToolbar(vh.toolbar);
 
-    helper.setTextView(vh.tv1, CardViewHelper.TEXT_VIEW_TITLE);
-    helper.setTextView(vh.tv1, CardViewHelper.TEXT_VIEW_SUBTITLE);
-    helper.setTextView(vh.tv1, CardViewHelper.TEXT_VIEW_TEXT);
+    //helper.setTextView(vh.tv1, CardViewHelper.TEXT_VIEW_TITLE);
+    //helper.setTextView(vh.tv1, CardViewHelper.TEXT_VIEW_SUBTITLE);
+    //helper.setTextView(vh.tv1, CardViewHelper.TEXT_VIEW_TEXT);
 
-    helper.setButton(vh.button2, CardViewHelper.BUTTON_SHARE);
+    //helper.setButton(vh.button2, CardViewHelper.BUTTON_SHARE);
 
     cursor.close();
     db.close();

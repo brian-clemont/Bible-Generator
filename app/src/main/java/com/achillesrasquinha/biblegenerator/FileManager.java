@@ -19,7 +19,7 @@ public class FileManager {
     mContext          = context;
     mStorageDirectory = new File(Environment.getExternalStoragePublicDirectory(
         Environment.DIRECTORY_PICTURES), context.getString(R.string.app_name));
-    mFormat           = mFormat;
+    mFormat           = Bitmap.CompressFormat.JPEG;
   }
 
   public File saveBitmap(Bitmap bitmap) {

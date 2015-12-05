@@ -23,6 +23,11 @@
             android:configChanges="orientation|screenSize"
             android:label="@string/favourites">
         </activity>
+        <activity
+            android:name=".AboutActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/favourites">
+        </activity>
     </application>
 
 </manifest>

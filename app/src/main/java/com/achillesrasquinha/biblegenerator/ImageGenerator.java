@@ -32,7 +32,7 @@ public class ImageGenerator {
   private Context mContext;
 
   public ImageGenerator(Context context) {
-    mContext          = context;
+    mContext = context;
   }
 
   public Bitmap getBitmap(String title, String subtitle, String text) {

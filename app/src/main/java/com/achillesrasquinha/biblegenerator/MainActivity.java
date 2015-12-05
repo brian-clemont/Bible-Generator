@@ -20,6 +20,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -36,13 +37,18 @@ import com.google.android.gms.ads.AdView;
 import java.io.IOException;
 import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity {
-  private static final String TAG = "DEV_LOG";
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+  private static final boolean DEV_MODE = true;
+  private static final String  TAG      = "DEV_LOG";
 
   private DatabaseOpenHelper      mDbOpenHelper;
   private HashMap<String, String> mHashMap;
 
+  private CoordinatorLayout       mCoordinatorLayout;
+
   private Toolbar                 mToolbar1;
+
+  private AdRequest.Builder       mAdRequestBuilder;
   private AdView                  mAdView;
 
   //CardView Widgets/Views
@@ -52,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
   private TextView                mTextView3;
   private Button                  mButton1;
   private Button                  mButton2;
+
+  private CardViewHelper          mCardViewHelper;
 
   private FloatingActionButton    mFab;
 
@@ -86,37 +94,66 @@ public class MainActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    mToolbar1     = (Toolbar)              findViewById(R.id.toolbar);
-    mAdView       = (AdView)               findViewById(R.id.ad_view);
-    mToolbar2     = (Toolbar)              findViewById(R.id.card_view_toolbar);
-    mTextView1    = (TextView)             findViewById(R.id.text_view_title);
-    mTextView2    = (TextView)             findViewById(R.id.text_view_subtitle);
-    mTextView3    = (TextView)             findViewById(R.id.text_view_supporting_text);
-    mButton1      = (Button)               findViewById(R.id.btn_like);
-    mButton2      = (Button)               findViewById(R.id.btn_share);
-    mFab          = (FloatingActionButton) findViewById(R.id.btn_generate);
-    mDbOpenHelper = new DatabaseOpenHelper(getApplicationContext(), DatabaseContract.DATABASE_NAME,
-        DatabaseContract.DATABASE_VERSION);
-    mHashMap      = new HashMap<String, String>();
+    mCoordinatorLayout = (CoordinatorLayout)    findViewById(R.id.coordinator_layout);
+    mToolbar1          = (Toolbar)              findViewById(R.id.toolbar);
+    mAdView            = (AdView)               findViewById(R.id.ad_view);
+    mToolbar2          = (Toolbar)              findViewById(R.id.card_view_toolbar);
+    mTextView1         = (TextView)             findViewById(R.id.text_view_title);
+    mTextView2         = (TextView)             findViewById(R.id.text_view_subtitle);
+    mTextView3         = (TextView)             findViewById(R.id.text_view_supporting_text);
+    mButton1           = (Button)               findViewById(R.id.btn_like);
+    mButton2           = (Button)               findViewById(R.id.btn_share);
+    mFab               = (FloatingActionButton) findViewById(R.id.btn_generate);
+    mDbOpenHelper      = new DatabaseOpenHelper(getApplicationContext(),
+        DatabaseContract.DATABASE_NAME, DatabaseContract.DATABASE_VERSION);
+    mHashMap           = new HashMap<String, String>();
+    mCardViewHelper    = new CardViewHelper(this, mCoordinatorLayout);
+
+    try {
+      mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+    } catch (IOException e) {
+      Log.d(TAG, "Unable to copy database.");
+      finish();
+      System.exit(0);
+      //TO-DO: Display dialog error, maybe.
+    } catch (SQLiteException e) {
+      Log.d(TAG, "Unable to open database.");
+      finish();
+      System.exit(0);
+      //TO-DO: Display dialog error, maybe.
+    }
+    mDbOpenHelper.close();
 
     setSupportActionBar(mToolbar1);
 
-    mAdView.loadAd(new AdRequest.Builder().addTestDevice("B2237171B30BD9744A213A70313165F0").build());
+    mAdRequestBuilder = new AdRequest.Builder();
+    if (DEV_MODE) {
+      mAdRequestBuilder.addTestDevice("B2237171B30BD9744A213A70313165F0");
+    }
 
+    mAdView.loadAd(mAdRequestBuilder.build());
+
+    //CardView Widgets/Views
     mToolbar2.inflateMenu(R.menu.menu_card_view_toolbar);
 
-    mFab.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick (View v) {
+    mFab.setOnClickListener(this);
+    mFab.performClick();
+
+    mButton1.setOnClickListener(this);
+  }
+
+  @Override
+  public void onClick(View view) {
+    switch(view.getId()) {
+      case R.id.btn_generate:
         try {
           mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-        } catch (IOException e) {
-          Log.d(TAG, "Unable to copy database.");
-          //TO-DO: Handle. Display error, maybe.
-        } catch (SQLiteException e) {
-          Log.d(TAG, "Unable to open database.");
-          //TO-DO: Handle. Display error, maybe.
-        }
+        } catch(IOException e) {
+          //Do nothing, has been handled during onCreate
+        } catch(SQLiteException e) {
+          Log.d(TAG, "Unable to open database after it exists.");
+          //TO-DO: Handle. Display dialog error, maybe.
+        } 
 
         Cursor cursor;
 
@@ -130,9 +167,9 @@ public class MainActivity extends AppCompatActivity {
 
         cursor = mDbOpenHelper.db.query(
             DatabaseContract.Table2.TABLE_NAME,
-            new String[] { DatabaseContract.Table2.COLUMN_NAME_1 },
+            new String[] {DatabaseContract.Table2.COLUMN_NAME_1},
             DatabaseContract.Table2.COLUMN_NAME_0 + " = ?",
-            new String[] { cursor.getString(1) },
+            new String[] {cursor.getString(1)},
             null,
             null,
             null);
@@ -140,44 +177,40 @@ public class MainActivity extends AppCompatActivity {
           mHashMap.put(MapKeys.TITLE, cursor.getString(0));
         }
 
-        CardViewHelper helper = new CardViewHelper(MainActivity.this, mHashMap);
+        mCardViewHelper.setDataset(mHashMap);
 
-        helper.setToolbar (mToolbar2);
-        helper.setTextView(mTextView1, CardViewHelper.TEXT_VIEW_TITLE);
-        helper.setTextView(mTextView2, CardViewHelper.TEXT_VIEW_SUBTITLE);
-        helper.setTextView(mTextView3, CardViewHelper.TEXT_VIEW_TEXT);
-        helper.setButton  (mButton2  , CardViewHelper.BUTTON_SHARE);
+        mToolbar2.setOnMenuItemClickListener(mCardViewHelper.getToolbarOnMenuItemClickListener());
+        mTextView1.setText(mCardViewHelper.getText(CardViewHelper.TEXT_VIEW_TITLE));
+        mTextView2.setText(mCardViewHelper.getText(CardViewHelper.TEXT_VIEW_SUBTITLE));
+        mTextView3.setText(mCardViewHelper.getText(CardViewHelper.TEXT_VIEW_TEXT));
+        mButton2.setOnClickListener(mCardViewHelper.getOnClickListener(CardViewHelper.BUTTON_SHARE));
 
         cursor = mDbOpenHelper.db.query(
             DatabaseContract.Table3.TABLE_NAME,
             null,
             DatabaseContract.Table3.COLUMN_NAME_0 + " = ?",
-            new String[] { mHashMap.get(MapKeys.ID) },
+            new String[] {mHashMap.get(MapKeys.ID)},
             null,
             null,
             null);
 
-        mButton1.setText(getString(cursor.moveToFirst() ?  R.string.btn_dislike
+        mButton1.setText(getString(cursor.moveToFirst() ? R.string.btn_dislike
             : R.string.btn_like));
 
         cursor.close();
         mDbOpenHelper.close();
-      }
-    });
-    mFab.performClick();
 
-    mButton1.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
+        return;
+
+      case R.id.btn_like:
         try {
-          mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
-        } catch (IOException e) {
-          Log.d(TAG, "Unable to copy database.");
-          //TO-DO: Handle. Display error, maybe.
-        } catch (SQLiteException e) {
-          Log.d(TAG, "Unable to open database.");
-          //TO-DO: Handle. Display error, maybe.
-        }
+          mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+        } catch(IOException e) {
+          //Do nothing, has been handled during onCreate
+        } catch(SQLiteException e) {
+          Log.d(TAG, "Unable to open database after it exists.");
+          //TO-DO: Handle. Display dialog error, maybe.
+        } 
 
         final String ID = mHashMap.get(MapKeys.ID);
 
@@ -192,13 +225,14 @@ public class MainActivity extends AppCompatActivity {
           mDbOpenHelper.db.delete(
               DatabaseContract.Table3.TABLE_NAME,
               DatabaseContract.Table3.COLUMN_NAME_0 + " = ?",
-              new String[] { ID });
+              new String[] {ID});
 
           mButton1.setText(getString(R.string.btn_like));
         }
 
         mDbOpenHelper.close();
-      }
-    });
+
+        return;
+    }
   }
 }
