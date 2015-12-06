@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
   //CardView Widgets/Views
   private Toolbar                 mToolbar2;
-  private TextView mTextView1;
+  private TextView                mTextView1;
   private TextView                mTextView2;
   private TextView                mTextView3;
   private Button                  mButton1;
@@ -128,7 +128,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     mAdRequestBuilder = new AdRequest.Builder();
     if (DEV_MODE) {
-      mAdRequestBuilder.addTestDevice(AdRequest.DEVICE_ID_EMULATOR);
       mAdRequestBuilder.addTestDevice("B2237171B30BD9744A213A70313165F0");
     }
 

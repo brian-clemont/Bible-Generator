@@ -42,7 +42,6 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
   private static final String  TAG = "DEV_LOG";
   
   public interface OnViewClickListener {
-    //Handling click-events on the Activity side.
     boolean onMenuItemClick(MenuItem item, int position);
     void    onClick(View view, int position);
   }
@@ -114,7 +113,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
     //                position cannot be determined. For this reason, you should only use the 
     //                position parameter while acquiring the related data item inside this method 
     //                and should not keep a copy of it."
-
+    
     try {
       mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
     } catch(IOException e) {
@@ -160,6 +159,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
     return mDataset.size();
   }
 
+  //Handling click-events on the Activity side.
   public void setOnViewClickListener(OnViewClickListener listener) {
     mListener = listener;
   }

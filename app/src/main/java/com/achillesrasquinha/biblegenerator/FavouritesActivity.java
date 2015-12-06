@@ -35,12 +35,15 @@ public class FavouritesActivity extends AppCompatActivity implements CardViewAda
   private DatabaseOpenHelper mDbOpenHelper;
   private ArrayList<String>  mArrayList;
 
-  private Toolbar            mToolbar;
-  private AdRequest.Builder  mAdRequestBuilder;
-  private AdView             mAdView;
+  private Toolbar                 mToolbar;
+  private AdRequest.Builder       mAdRequestBuilder;
+  private AdView                  mAdView;
+  private RecyclerView            mRecyclerView;
 
-  private RecyclerView       mRecyclerView;
-  private CardViewAdapter    mCardViewAdapter;
+  private CardViewAdapter         mCardViewAdapter;
+
+  private CardViewHelper          mCardViewHelper;
+  private HashMap<String, String> mHashMap;
 
   @Override
   public boolean onCreateOptionsMenu (Menu menu) {
@@ -62,41 +65,47 @@ public class FavouritesActivity extends AppCompatActivity implements CardViewAda
     }
   }
 
+  @Override
   protected void onCreate (Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_favourites);
 
-    mToolbar = (Toolbar) findViewById(R.id.toolbar);
-    mAdView  = (AdView)  findViewById(R.id.ad_view);
+    mToolbar      = (Toolbar)      findViewById(R.id.toolbar);
+    mAdView       = (AdView)       findViewById(R.id.ad_view);
+    mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+    mDbOpenHelper = new DatabaseOpenHelper(this, DatabaseContract.DATABASE_NAME,
+        DatabaseContract.DATABASE_VERSION);
+    mArrayList    = new ArrayList<String>();
+    mHashMap      = new HashMap<String, String>();
 
     setSupportActionBar(mToolbar);
 
     mAdRequestBuilder = new AdRequest.Builder();
     if (DEV_MODE) {
-
+      mAdRequestBuilder
+        mAdRequestBuilder.addTestDevice("B2237171B30BD9744A213A70313165F0");
     }
 
+    mAdView.loadAd(mAdRequestBuilder.build());
 
+    try {
+      mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+    } catch(IOException e) {
+      //Do nothing, has been handled during MainActivity.onCreate
+    } catch(SQLiteException e) {
+      Log.d(TAG, "Unable to open database after it exists.");
+      //TO-DO: Handle. Display dialog error, maybe.
+    }
 
-
-    setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-
-    AdView lAdView = (AdView) findViewById(R.id.ad_view);
-    lAdView.loadAd(new AdRequest.Builder().addTestDevice("B2237171B30BD9744A213A70313165F0")
-        .build());
-
-    mDbOpenHelper = new DatabaseOpenHelper(this, DatabaseContract.DATABASE_NAME,
-        DatabaseContract.DATABASE_VERSION);
-
-    SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
-    Cursor cursor;
-
-    cursor = db.rawQuery("SELECT * " + " FROM " + DatabaseContract.Table1.TABLE_NAME + " WHERE " +
-        DatabaseContract.Table1.COLUMN_NAME_0 + " IN (SELECT " +
-        DatabaseContract.Table3.COLUMN_NAME_0 + " FROM " + DatabaseContract.Table3.TABLE_NAME +
-        ")", null);
-
-    ArrayList<String> mArrayList = new ArrayList<String>();
+    Cursor cursor = mDbOpenHelper.query(
+        DatabaseContract.Table3.TABLE_NAME,
+        DatabaseContract.Table3.COLUMN_NAME_0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null);
     if (cursor.moveToFirst()) {
       do {
         mArrayList.add(cursor.getString(0));
@@ -104,21 +113,68 @@ public class FavouritesActivity extends AppCompatActivity implements CardViewAda
       while (cursor.moveToNext());
     }
 
-    RecyclerView rv = (RecyclerView) findViewById(R.id.recycler_view);
-    rv.setLayoutManager(new LinearLayoutManager(this));
-    rv.setAdapter(new CardViewAdapter(this, mArrayList));
-
-
+    mCardViewAdapter = new CardViewAdapter(this, mArrayList);
     mCardViewAdapter.setOnViewClickListener(this);
+
+    mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+    mRecyclerView.setAdapter(mCardViewAdapter);
   }
 
   @Override
   public void onMenuItemClick(Menu item, int position) {
-
+    if (updateDataset(position)) {
+      mCardViewHelper.setDataset(mHashMap);
+      mCardViewHelper.onMenuItemClick(item);
+    } else {
+      Log.d(TAG, "Updating hash map for " + position + " was unsuccessful.");
+    }
   }
 
   @Override
   public void onClick(View view, int position) {
 
+  }
+
+  public void updateDataset(int position) {
+    try {
+      mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+    } catch(IOException e) {
+      //Do nothing, has been handled during MainActivity.onCreate
+    } catch(SQLiteException e) {
+      Log.d(TAG, "Unable to open database after it exists.");
+      //TO-DO: Handle. Display dialog error, maybe.
+    }
+
+    Cursor cursor;
+
+    cursor = mDbOpenHelper.db.query(
+        DatabaseContract.Table1.TABLE_NAME,
+        null,
+        DatabaseContract.Table1.COLUMN_NAME_0 + " = ?",
+        new String[] { mArrayList.get(position) },
+        null,
+        null,
+        null);
+    if (cursor.moveToFirst()) {
+      mHashMap.put(MapKeys.ID     , cursor.getString(0));
+      mHashMap.put(MapKeys.CHAPTER, cursor.getString(2));
+      mHashMap.put(MapKeys.VERSE  , cursor.getString(3));
+      mHashMap.put(MapKeys.TEXT   , cursor.getString(4));
+    }
+
+    cursor = mDbOpenHelper.db.query(
+        DatabaseContract.Table2.TABLE_NAME,
+        new String[] {DatabaseContract.Table2.COLUMN_NAME_1},
+        DatabaseContract.Table2.COLUMN_NAME_0 + " = ?",
+        new String[] {cursor.getString(1)},
+        null,
+        null,
+        null);
+    if (cursor.moveToFirst()) {
+      mHashMap.put(MapKeys.TITLE, cursor.getString(0));
+    }
+
+    cursor.close();
+    mDbOpenHelper.close();
   }
 }
