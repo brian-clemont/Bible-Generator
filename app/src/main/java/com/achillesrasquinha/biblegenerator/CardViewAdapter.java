@@ -145,6 +145,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
 
   @Override
   public int getItemCount () {
+    Log.d(TAG, "Dataset size: " + dataset.size());
     return dataset.size();
   }
 

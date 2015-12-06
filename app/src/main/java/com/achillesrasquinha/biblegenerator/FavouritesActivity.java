@@ -21,6 +21,7 @@ import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -29,6 +30,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -48,7 +52,11 @@ public class FavouritesActivity extends AppCompatActivity implements
   private Toolbar                 mToolbar;
   private AdRequest.Builder       mAdRequestBuilder;
   private AdView                  mAdView;
+  private ViewSwitcher            mViewSwitcher;
+  private LinearLayoutManager     mLayoutManager;
   private RecyclerView            mRecyclerView;
+  private ImageView               mImageView;
+  private TextView                mTextView;
   
   private DatabaseOpenHelper      mDbOpenHelper;
   
@@ -84,22 +92,19 @@ public class FavouritesActivity extends AppCompatActivity implements
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_favourites);
     
-    mCoordinatorLayout = (CoordinatorLayout)    findViewById(R.id.coordinator_layout);
-    mToolbar           = (Toolbar)      findViewById(R.id.toolbar);
-    mAdView            = (AdView)       findViewById(R.id.ad_view);
-    mRecyclerView      = (RecyclerView) findViewById(R.id.recycler_view);
+    mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator_layout);
+    mToolbar           = (Toolbar)           findViewById(R.id.toolbar);
+    mAdRequestBuilder  = new AdRequest.Builder();
+    mAdView            = (AdView)            findViewById(R.id.ad_view);
+    mViewSwitcher      = (ViewSwitcher)      findViewById(R.id.view_switcher);
+    mImageView         = (ImageView)         findViewById(R.id.image_view);
+    mTextView          = (TextView)          findViewById(R.id.text_view);
+    mRecyclerView      = (RecyclerView)      findViewById(R.id.recycler_view);
     mDbOpenHelper      = new DatabaseOpenHelper(this, DatabaseContract.DATABASE_NAME,
-        DatabaseContract.DATABASE_VERSION);
-    mHashMap           = new HashMap<>();
-    mCardViewHelper    = new CardViewHelper(this, mCoordinatorLayout);
-    mDialogBuilder     = new MaterialDialog.Builder(this)
-        .title(R.string.dialog_title_remove_from_favourites)
-        .positiveText(R.string.btn_dialog_remove)
-        .negativeText(R.string.btn_dialog_cancel);
+        DatabaseContract.DATABASE_VERSION);    
 
     setSupportActionBar(mToolbar);
 
-    mAdRequestBuilder = new AdRequest.Builder();
     if (DEV_MODE) {
         mAdRequestBuilder.addTestDevice("B2237171B30BD9744A213A70313165F0");
     }
@@ -114,7 +119,6 @@ public class FavouritesActivity extends AppCompatActivity implements
       Log.d(TAG, "Unable to open database after it exists.");
       //TO-DO: Handle. Display dialog error, maybe.
     }
-
 
     ArrayList<String> list   = new ArrayList<>();
     Cursor            cursor = mDbOpenHelper.db.query(
@@ -131,20 +135,27 @@ public class FavouritesActivity extends AppCompatActivity implements
         list.add(cursor.getString(0));
       }
       while (cursor.moveToNext());
+
+      mHashMap        = new HashMap<>();
+      mCardViewHelper = new CardViewHelper(this, mCoordinatorLayout);
+      mDialogBuilder  = new MaterialDialog.Builder(this)
+        .title(R.string.dialog_title_remove_from_favourites)
+        .positiveText(R.string.btn_dialog_remove)
+        .negativeText(R.string.btn_dialog_cancel);
+
+      mCardViewAdapter = new CardViewAdapter(this, list);
+      mCardViewAdapter.setOnViewClickListener(this);
+
+      mLayoutManager = new LinearLayoutManager(this);
+      mRecyclerView.setLayoutManager(mLayoutManager);
+      mRecyclerView.setAdapter(mCardViewAdapter);
+    } else {
+      mViewSwitcher.showNext();
     }
-
-    mCardViewAdapter = new CardViewAdapter(this, list);
-    mCardViewAdapter.setOnViewClickListener(this);
-
-    mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-    mRecyclerView.setAdapter(mCardViewAdapter);
-
+    
     cursor.close();
     mDbOpenHelper.close();
-
-    //adding a dummy value to MapKeys.ID
-    mHashMap.put(MapKeys.ID, "-1");
-  }
+  } 
 
   @Override
   public boolean onMenuItemClick(MenuItem item, int position) {
@@ -173,7 +184,7 @@ public class FavouritesActivity extends AppCompatActivity implements
         mDialogBuilder
           .onPositive(new MaterialDialog.SingleButtonCallback() {
             @Override
-            public void onClick(@NonNull MaterialDialog dialog, DialogAction which) {
+            public void onClick (@NonNull MaterialDialog materialDialog, @NonNull DialogAction dialogAction) {
               try {
                 mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READWRITE);
               } catch(IOException e) {
@@ -183,30 +194,35 @@ public class FavouritesActivity extends AppCompatActivity implements
                 //TO-DO: Handle. Display dialog error, maybe.
               }
 
-              if (DEV_MODE) {
-                if(mDbOpenHelper.getWritableDatabase() != null) {
-                  Log.d(TAG, "Database accessible within callback.");
-                }
-              }
-
               mDbOpenHelper.db.delete(
                   DatabaseContract.Table3.TABLE_NAME,
                   DatabaseContract.Table3.COLUMN_NAME_0 + " = ?",
                   new String[] { mCardViewAdapter.dataset.get(POSITION) });
 
               mCardViewAdapter.remove(POSITION);
+
+              Snackbar.make(mCoordinatorLayout, R.string.message_removed_from_favourites,
+                  Snackbar.LENGTH_SHORT).show();
+
+              if (mCardViewAdapter.getItemCount() == 0) {
+                mViewSwitcher.showNext();
+              }
+
+              mDbOpenHelper.close();
             }
           })
           .show();
+
         break;
     }
   }
 
   public boolean updateDataset(int position) {
-    final String ID = mCardViewAdapter.dataset.get(position);
+    final String ID      = mCardViewAdapter.dataset.get(position);
+    final String PREV_ID = mHashMap.get(MapKeys.ID);
 
-    if (mHashMap.get(MapKeys.ID).equals(ID)) {
-      return true;
+    if (PREV_ID != null) {
+      return PREV_ID.equals(ID);
     }
 
     try {
@@ -234,7 +250,6 @@ public class FavouritesActivity extends AppCompatActivity implements
       mHashMap.put(MapKeys.VERSE  , cursor.getString(3));
       mHashMap.put(MapKeys.TEXT   , cursor.getString(4));
     } else {
-      //TO-DO: check whether adapter position equals position within dataset.
       return false;
     }
 

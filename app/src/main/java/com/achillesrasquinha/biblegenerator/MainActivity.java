@@ -147,6 +147,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
   }
 
   @Override
+  public void onResume() {
+    super.onResume();
+    //When user returns back to MainActivity from other activities, like button must be updated 
+    //accordingly since user may have disliked the current view.
+    try {
+      mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
+    } catch(IOException e) {
+      //Do nothing, has been handled during onCreate
+    } catch(SQLiteException e) {
+      Log.d(TAG, "Unable to open database after it exists.");
+      //TO-DO: Handle. Display dialog error, maybe.
+    }
+
+    Cursor cursor;
+    cursor = mDbOpenHelper.db.query(
+            DatabaseContract.Table3.TABLE_NAME,
+            null,
+            DatabaseContract.Table3.COLUMN_NAME_0 + " = ?",
+            new String[] {mHashMap.get(MapKeys.ID)},
+            null,
+            null,
+            null);
+
+    mButton1.setText(cursor.moveToFirst() ? R.string.btn_dislike : R.string.btn_like);
+
+    cursor.close();
+    mDbOpenHelper.close();
+  }
+
+  @Override
   public void onClick(View view) {
     switch(view.getId()) {
       case R.id.btn_generate:

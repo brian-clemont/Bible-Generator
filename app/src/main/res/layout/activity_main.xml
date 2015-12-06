@@ -43,17 +43,18 @@ limitations under the License.
             android:layout_below="@id/toolbar"
             android:layout_centerHorizontal="true"
             android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="8dp"
             ads:adSize="BANNER"
             ads:adUnitId="@string/banner_ad_unit_id" />
 
-        <ScrollView
+        <android.support.v4.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@id/ad_view">
 
             <include layout="@layout/card_view" />
 
-        </ScrollView>
+        </android.support.v4.widget.NestedScrollView>
 
     </RelativeLayout>
 
@@ -61,10 +62,10 @@ limitations under the License.
         android:id="@+id/btn_generate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right|end"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
+        android:layout_gravity="bottom|right|end"
         android:layout_margin="16dp"
         android:src="@drawable/ic_refresh_white_24dp"
         app:elevation="6dp"

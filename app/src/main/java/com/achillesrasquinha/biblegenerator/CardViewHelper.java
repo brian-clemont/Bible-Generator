@@ -110,7 +110,7 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
         ClipData cd = ClipData.newPlainText(mAppName, getPlainText());
           mClipboardManager.setPrimaryClip(cd);
 
-        Snackbar.make(mCoordinatorLayout, R.string.message_copied_to_clipboard + getPlainText(),
+        Snackbar.make(mCoordinatorLayout, R.string.message_copied_to_clipboard,
             Snackbar.LENGTH_SHORT).show();
 
         return true;
@@ -162,18 +162,18 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
       case R.id.action_share_instagram:
         if (ThirdPartyApplication.isInstalled(mContext2,
             ThirdPartyApplication.PackageName.INSTAGRAM)) {
-          File file = mFileManager.saveBitmap(mImageGenerator.getBitmap(title, subtitle, text));
+          final File FILE = mFileManager.saveBitmap(mImageGenerator.getBitmap(title, subtitle, 
+              text));
 
-          if (file != null) {
+          if (FILE != null) {
             Snackbar.make(mCoordinatorLayout, R.string.message_saved_to_gallery,
                 Snackbar.LENGTH_SHORT).show();
-            
-            final Uri URI = Uri.fromFile(file);
+
             mContext1.startActivity(new Intent() {{
               setAction(Intent.ACTION_SEND);
               setPackage(ThirdPartyApplication.PackageName.INSTAGRAM);
               setType("image/*");
-              putExtra(Intent.EXTRA_STREAM, URI);
+              putExtra(Intent.EXTRA_STREAM, Uri.fromFile(FILE));
             }});
           } else {
             //TO-DO: Find and describe reason for not being able to save file,
@@ -220,18 +220,17 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
         break;
 
       case R.id.share_as_image:
-        File file = mFileManager.saveBitmap(mImageGenerator.getBitmap(title, subtitle, text));
+        final File FILE = mFileManager.saveBitmap(mImageGenerator.getBitmap(title, subtitle, text));
 
-        if (file != null) {
+        if (FILE != null) {
           Snackbar.make(mCoordinatorLayout, R.string.message_saved_to_gallery,
               Snackbar.LENGTH_SHORT).show();
 
-          final Uri URI = Uri.fromFile(file);
           mContext1.startActivity(new Intent() {{
             setAction(Intent.ACTION_SEND);
             setPackage(ThirdPartyApplication.PackageName.WHATSAPP);
             setType("image/*");
-            putExtra(Intent.EXTRA_STREAM, URI);
+            putExtra(Intent.EXTRA_STREAM, Uri.fromFile(FILE));
           }});
         } else {
           //TO-DO: Find and describe reason for not being able to save file,

@@ -31,7 +31,8 @@ limitations under the License.
     <string name="message_unable_to_save_file">Unable to save file.</string>
     <string name="message_you_dont_have_instagram_installed">You don\'t have Instagram installed.</string>
     <string name="message_you_dont_have_whatsapp_installed">You don\'t have WhatsApp installed.</string>
-    <string name="message_removed_from_favourites.">Removed from favourites.</string>
+    <string name="message_removed_from_favourites">Removed from favourites.</string>
+    <string name="message_you_have_no_favourites_yet">You have no favourites yet.</string>
     <string name="bottom_sheet_share_as_title">Share as</string>
     <string name="title_copy">Copy</string>
     <string name="title_save">Save</string>
