@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHolder> {
-  private static final String  TAG = "DEV_LOG";
+  private static final String TAG = "DEV_LOG";
   
   public interface OnViewClickListener {
     boolean onMenuItemClick(MenuItem item, int position);
@@ -53,10 +53,10 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
     public Button   mButton1;
     public Button   mButton2;
 
-    public ViewHolder (View view) {
+    public ViewHolder(View view) {
       super(view);
 
-      mToolbar   = (Toolbar ) view.findViewById(R.id.card_view_toolbar);
+      mToolbar   = (Toolbar)  view.findViewById(R.id.card_view_toolbar);
       mTextView1 = (TextView) view.findViewById(R.id.text_view_title);
       mTextView2 = (TextView) view.findViewById(R.id.text_view_subtitle);
       mTextView3 = (TextView) view.findViewById(R.id.text_view_supporting_text);
@@ -82,34 +82,33 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
     }
   }
 
-  public CardViewAdapter (Context context, ArrayList<String> list) {
+  public CardViewAdapter(Context context, ArrayList<String> list) {
     dataset       = list;
     mDbOpenHelper = new DatabaseOpenHelper(context, DatabaseContract.DATABASE_NAME,
-        DatabaseContract.DATABASE_VERSION);
+            DatabaseContract.DATABASE_VERSION);
   }
 
   @Override
-  public CardViewAdapter.ViewHolder onCreateViewHolder (ViewGroup parent, int viewType) {
-    View       view = LayoutInflater.from(parent.getContext())
-                          .inflate(R.layout.card_view, parent, false);
+  public CardViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_view, parent, false);
     return new ViewHolder(view);
   }
 
   @Override
-  public void onBindViewHolder (ViewHolder vh, int position) {
-    //From the DOCS: "RecyclerView will not call this method again if the position of the item 
-    //                changes in the data set unless the item itself is invalidated or the new
-    //                position cannot be determined. For this reason, you should only use the 
-    //                position parameter while acquiring the related data item inside this method 
-    //                and should not keep a copy of it."
+  public void onBindViewHolder(ViewHolder vh, int position) {
+    // From the DOCS: "RecyclerView will not call this method again if the position of the item 
+    //                 changes in the data set unless the item itself is invalidated or the new
+    //                 position cannot be determined. For this reason, you should only use the 
+    //                 position parameter while acquiring the related data item inside this method 
+    //                 and should not keep a copy of it."
     
     try {
       mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
-    } catch(IOException e) {
-      //Do nothing, has been handled during MainActivity.onCreate
-    } catch(SQLiteException e) {
+    } catch (IOException e) {
+      // Do nothing, has been handled during MainActivity.onCreate
+    } catch (SQLiteException e) {
       Log.d(TAG, "Unable to open database after it exists.");
-      //TO-DO: Handle. Display dialog error, maybe.
+      // TODO: Handle. Display dialog error, maybe.
     }
 
     Cursor cursor;
@@ -149,7 +148,6 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
     return dataset.size();
   }
 
-  //Handling click-events on the Activity side.
   public void setOnViewClickListener(OnViewClickListener listener) {
     mListener = listener;
   }
