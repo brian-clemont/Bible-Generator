@@ -132,10 +132,22 @@ public class FavouritesActivity extends AppCompatActivity implements CardViewAda
 
   @Override
   public void onClick(View view, int position) {
-
+    switch(view.getId()) {
+      case R.id.btn_share:
+        if (updateDataset(position)) {
+          mCardViewHelper.setDataset(mHashMap);
+          mCardViewHelper.onMenuItemClick(item);
+        }
+    }
   }
 
-  public void updateDataset(int position) {
+  public boolean updateDataset(int position) {
+    final String ID = mArrayList.get(position);
+
+    if (mHashMap.get(MapKeys.ID).equals(ID)) {
+      return true;
+    }
+
     try {
       mDbOpenHelper.openDatabase(SQLiteDatabase.OPEN_READONLY);
     } catch(IOException e) {
@@ -151,7 +163,7 @@ public class FavouritesActivity extends AppCompatActivity implements CardViewAda
         DatabaseContract.Table1.TABLE_NAME,
         null,
         DatabaseContract.Table1.COLUMN_NAME_0 + " = ?",
-        new String[] { mArrayList.get(position) },
+        new String[] { ID) },
         null,
         null,
         null);
@@ -160,6 +172,8 @@ public class FavouritesActivity extends AppCompatActivity implements CardViewAda
       mHashMap.put(MapKeys.CHAPTER, cursor.getString(2));
       mHashMap.put(MapKeys.VERSE  , cursor.getString(3));
       mHashMap.put(MapKeys.TEXT   , cursor.getString(4));
+    } else {
+      return false;
     }
 
     cursor = mDbOpenHelper.db.query(
@@ -176,5 +190,7 @@ public class FavouritesActivity extends AppCompatActivity implements CardViewAda
 
     cursor.close();
     mDbOpenHelper.close();
+
+    return true;
   }
 }
