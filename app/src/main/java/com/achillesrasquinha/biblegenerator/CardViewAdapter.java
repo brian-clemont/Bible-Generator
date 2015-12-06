@@ -14,13 +14,10 @@
 
 package com.achillesrasquinha.biblegenerator;
 
-import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.support.annotation.NonNull;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -31,12 +28,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
-
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHolder> {
   private static final String  TAG = "DEV_LOG";
@@ -46,11 +39,10 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
     void    onClick(View view, int position);
   }
 
-  private Context                 mContext;
-  private DatabaseOpenHelper      mDbOpenHelper;
-  private ArrayList<String>       mDataset;
+  private DatabaseOpenHelper  mDbOpenHelper;
+  public  ArrayList<String>   dataset;
 
-  private OnViewClickListener     mListener;
+  private OnViewClickListener mListener;
 
   public class ViewHolder extends RecyclerView.ViewHolder implements
       Toolbar.OnMenuItemClickListener, View.OnClickListener {
@@ -91,8 +83,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
   }
 
   public CardViewAdapter (Context context, ArrayList<String> list) {
-    mContext      = context;
-    mDataset      = list;
+    dataset       = list;
     mDbOpenHelper = new DatabaseOpenHelper(context, DatabaseContract.DATABASE_NAME,
         DatabaseContract.DATABASE_VERSION);
   }
@@ -100,10 +91,8 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
   @Override
   public CardViewAdapter.ViewHolder onCreateViewHolder (ViewGroup parent, int viewType) {
     View       view = LayoutInflater.from(parent.getContext())
-                          .inflate(R.layout.card_view, parent, false);;
-    ViewHolder vh   = new ViewHolder(view);
-
-    return vh;
+                          .inflate(R.layout.card_view, parent, false);
+    return new ViewHolder(view);
   }
 
   @Override
@@ -129,7 +118,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
         DatabaseContract.Table1.TABLE_NAME,
         null,
         DatabaseContract.Table1.COLUMN_NAME_0 + " = ?",
-        new String[] { mDataset.get(position) },
+        new String[] { dataset.get(position) },
         null,
         null,
         null);
@@ -147,7 +136,7 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
         null,
         null);
     if (cursor.moveToFirst()) {
-      vh.mTextView.setText(cursor.getString(0));
+      vh.mTextView1.setText(cursor.getString(0));
     }
 
     cursor.close();
@@ -156,11 +145,16 @@ public class CardViewAdapter extends RecyclerView.Adapter<CardViewAdapter.ViewHo
 
   @Override
   public int getItemCount () {
-    return mDataset.size();
+    return dataset.size();
   }
 
   //Handling click-events on the Activity side.
   public void setOnViewClickListener(OnViewClickListener listener) {
     mListener = listener;
+  }
+
+  public void remove(int position) {
+    dataset.remove(position);
+    notifyItemRemoved(position);
   }
 }

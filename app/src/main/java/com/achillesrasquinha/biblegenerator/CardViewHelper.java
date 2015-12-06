@@ -37,7 +37,6 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
     Dialog.OnClickListener {
   private Context                 mContext1;
   private Context                 mContext2;
-  private HashMap<String, String> mHashMap;
 
   private String                  mAppName;
 
@@ -61,6 +60,7 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
     mContext2            = context.getApplicationContext();
     mCoordinatorLayout   = layout;
 
+    //accessing static method via instance reference
     mClipboardManager    = (ClipboardManager) mContext2.getSystemService(
         mContext2.CLIPBOARD_SERVICE);
     mFileManager         = new FileManager(mContext2);
@@ -79,14 +79,12 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
   }
 
   public void setDataset(HashMap<String, String> map) {
-    mHashMap = map;
-
     //providing global access since retriving from the HashMap is slow.
-    title    = mHashMap.get(MapKeys.TITLE);
-    mChapter = mHashMap.get(MapKeys.CHAPTER);
-    mVerse   = mHashMap.get(MapKeys.VERSE);
+    title    = map.get(MapKeys.TITLE);
+    mChapter = map.get(MapKeys.CHAPTER);
+    mVerse   = map.get(MapKeys.VERSE);
     subtitle = "Chapter " + mChapter + ", Verse " + mVerse;
-    text     = mHashMap.get(MapKeys.TEXT);
+    text     = map.get(MapKeys.TEXT);
   }
 
   private String getPlainText() {
@@ -151,15 +149,15 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
     switch(which) {
       case R.id.action_share_facebook:
         //TO-DO: Intent for sharing via Facebook, may require SDK
-        return;
+        break;
 
       case R.id.action_share_google_plus:
         //TO-DO: Intent for sharing via Google+, may require SDK
-        return;
+        break;
 
       case R.id.action_share_twitter:
         //TO-DO: Intent for sharing via Twitter, including 3rd party apps.
-        return;
+        break;
 
       case R.id.action_share_instagram:
         if (ThirdPartyApplication.isInstalled(mContext2,
@@ -189,7 +187,7 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
               Snackbar.LENGTH_SHORT).show();
         }
 
-        return;
+        break;
 
       case R.id.action_share_whatsapp:
         if (ThirdPartyApplication.isInstalled(mContext2,
@@ -200,7 +198,7 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
               Snackbar.LENGTH_SHORT).show();
         }
 
-        return;
+        break;
 
       case R.id.action_share_message:
         mContext1.startActivity(new Intent() {{
@@ -209,7 +207,7 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
           putExtra("sms_body", getPlainText());
         }});
 
-        return;
+        break;
 
       case R.id.share_as_text:
         mContext1.startActivity(new Intent() {{
@@ -219,7 +217,7 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
           putExtra(Intent.EXTRA_TEXT, getPlainText());
         }});
 
-        return;
+        break;
 
       case R.id.share_as_image:
         File file = mFileManager.saveBitmap(mImageGenerator.getBitmap(title, subtitle, text));
@@ -242,7 +240,7 @@ public class CardViewHelper implements Toolbar.OnMenuItemClickListener, View.OnC
               Snackbar.LENGTH_SHORT).show();
         }
 
-        return;
+        break;
     }
   }
 }

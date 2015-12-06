@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     mFab               = (FloatingActionButton) findViewById(R.id.btn_generate);
     mDbOpenHelper      = new DatabaseOpenHelper(getApplicationContext(),
         DatabaseContract.DATABASE_NAME, DatabaseContract.DATABASE_VERSION);
-    mHashMap           = new HashMap<String, String>();
+    mHashMap           = new HashMap<>();
     mCardViewHelper    = new CardViewHelper(this, mCoordinatorLayout);
 
     try {
@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         cursor.close();
         mDbOpenHelper.close();
 
-        return;
+        break;
 
       case R.id.btn_like:
         try {
@@ -232,7 +232,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mDbOpenHelper.close();
 
-        return;
+        break;
     }
   }
 }
