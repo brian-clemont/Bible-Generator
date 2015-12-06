@@ -17,9 +17,7 @@ limitations under the License.
 -->
 
 <resources>
-    <string name="favourites">Favourites</string>
-    <string name="about">About</string>
-
+    <string name="app_description">Generate random verses from the Holy Bible (King James Version)</string>
     <string name="app_name">Bible Generator</string>
     <string name="banner_ad_unit_id">ca-app-pub-6963796698562111/8124584380</string>
     <string name="btn_like">LIKE</string>
@@ -39,4 +37,6 @@ limitations under the License.
     <string name="dialog_title_remove_from_favourites">Remove from favourites?</string>
     <string name="btn_dialog_remove">Remove</string>
     <string name="btn_dialog_cancel">Cancel</string>
+    <string name="title_favourites">Favourites</string>
+    <string name="title_about">About</string>
 </resources>

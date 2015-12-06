@@ -20,10 +20,10 @@ limitations under the License.
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_favourites"
-        android:title="@string/favourites"
+        android:title="@string/title_favourites"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_about"
-        android:title="@string/about"
+        android:title="@string/title_about"
         app:showAsAction="never" />
 </menu>
